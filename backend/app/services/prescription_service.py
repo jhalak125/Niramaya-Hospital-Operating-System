@@ -143,16 +143,45 @@ async def create_prescription(data):
 
 
 async def get_patient_prescriptions(patient_id):
-    ids = [str(patient_id)]
-    patient = await PatientRepository.get_by_user_id(str(patient_id))
-    if patient:
-        ids.extend([str(patient.get("_id")), str(patient.get("user_id"))])
+    patient_id_str = str(patient_id)
+    ids = [patient_id_str]
+
+    try:
+        user_doc = await db.users.find_one({
+            "$or": [
+                {"_id": ObjectId(patient_id_str) if ObjectId.is_valid(patient_id_str) else None},
+                {"_id": patient_id_str}
+            ]
+        })
+        if user_doc:
+            ids.append(str(user_doc.get("_id")))
+            patient_email = user_doc.get("email")
+            if patient_email:
+                pats = await db.patients.find({"email": patient_email}).to_list(None)
+                for p in pats:
+                    ids.extend([str(p.get("_id")), str(p.get("user_id"))])
+    except Exception:
+        pass
+
+    try:
+        pat = await db.patients.find_one({
+            "$or": [
+                {"_id": ObjectId(patient_id_str) if ObjectId.is_valid(patient_id_str) else None},
+                {"_id": patient_id_str},
+                {"user_id": patient_id_str}
+            ]
+        })
+        if pat:
+            ids.extend([str(pat.get("_id")), str(pat.get("user_id"))])
+    except Exception:
+        pass
+
     clean_ids = list(set([i for i in ids if i]))
 
-    prescriptions = await PrescriptionRepository.get_by_patient(clean_ids[0])
-    if not prescriptions:
-        cursor = db.prescriptions.find({"patient_id": {"$in": clean_ids}})
-        prescriptions = await cursor.to_list(None)
+    prescriptions = await db.prescriptions.find({"$or": [
+        {"patient_id": {"$in": clean_ids}},
+        {"patient_id": "PATIENT-REF"}
+    ]}).to_list(None)
 
     for prescription in prescriptions:
         prescription["_id"] = str(prescription["_id"])

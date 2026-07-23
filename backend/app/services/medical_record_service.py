@@ -81,7 +81,42 @@ def _format_attachment_url(record):
 
 
 async def get_patient_records(patient_id):
-    records = await MedicalRecordRepository.get_by_patient(patient_id)
+    patient_id_str = str(patient_id)
+    ids = [patient_id_str]
+
+    try:
+        user_doc = await db.users.find_one({
+            "$or": [
+                {"_id": ObjectId(patient_id_str) if ObjectId.is_valid(patient_id_str) else None},
+                {"_id": patient_id_str}
+            ]
+        })
+        if user_doc:
+            ids.append(str(user_doc.get("_id")))
+            patient_email = user_doc.get("email")
+            if patient_email:
+                pats = await db.patients.find({"email": patient_email}).to_list(None)
+                for p in pats:
+                    ids.extend([str(p.get("_id")), str(p.get("user_id"))])
+    except Exception:
+        pass
+
+    try:
+        pat = await db.patients.find_one({
+            "$or": [
+                {"_id": ObjectId(patient_id_str) if ObjectId.is_valid(patient_id_str) else None},
+                {"_id": patient_id_str},
+                {"user_id": patient_id_str}
+            ]
+        })
+        if pat:
+            ids.extend([str(pat.get("_id")), str(pat.get("user_id"))])
+    except Exception:
+        pass
+
+    clean_ids = list(set([i for i in ids if i]))
+
+    records = await db.medical_records.find({"patient_id": {"$in": clean_ids}}).to_list(None)
     return [_format_attachment_url(r) for r in records]
 
 
