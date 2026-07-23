@@ -12,8 +12,8 @@ export const VaidyaReportViewer = ({ data }) => {
   const englishText = data.english_text || data.summary || data.findings || (typeof data === 'string' ? data : JSON.stringify(data));
   const hindiText = data.hindi_text || "आपकी मेडिकल रिपोर्ट का विवरण यहाँ उपलब्ध है।";
 
-  const englishAudioUrl = data.english_voice ? (data.english_voice.startsWith('http') ? data.english_voice : `http://localhost:8000${data.english_voice}`) : null;
-  const hindiAudioUrl = data.hindi_voice ? (data.hindi_voice.startsWith('http') ? data.hindi_voice : `http://localhost:8000${data.hindi_voice}`) : null;
+  const englishAudioUrl = data.english_voice ? (data.english_voice.startsWith('http') ? data.english_voice : `https://niramaya-hospital-operating-system.onrender.com${data.english_voice}`) : null;
+  const hindiAudioUrl = data.hindi_voice ? (data.hindi_voice.startsWith('http') ? data.hindi_voice : `https://niramaya-hospital-operating-system.onrender.com${data.hindi_voice}`) : null;
 
   const currentAudioUrl = activeLang === 'hi' ? hindiAudioUrl : englishAudioUrl;
   const currentText = activeLang === 'hi' ? hindiText : englishText;
