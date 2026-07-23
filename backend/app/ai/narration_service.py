@@ -18,6 +18,9 @@ def _clean_narrative(text: str) -> str:
 
 async def generate_english_narration(report):
 
+    if isinstance(report, dict) and report.get("layman_explanation"):
+        return _clean_narrative(report["layman_explanation"])
+
     prompt = f"""
 You are Dr. Vaidya, a senior compassionate medical doctor and radiologist.
 
@@ -50,6 +53,9 @@ MANDATORY STYLE RULES:
 
 
 async def generate_hindi_narration(report):
+
+    if isinstance(report, dict) and report.get("hindi_explanation"):
+        return _clean_narrative(report["hindi_explanation"])
 
     prompt = f"""
 आप डॉ. वैद्य (Dr. Vaidya) हैं, एक संवेदनशील और अनुभवी वरिष्ठ डॉक्टर।
