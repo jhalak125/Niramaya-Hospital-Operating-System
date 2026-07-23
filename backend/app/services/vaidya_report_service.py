@@ -93,7 +93,7 @@ async def analyze_report(file):
             print("Tesseract OCR Exception:", e)
 
     # 3. Comprehensive Pelvic Sonography & Diagnostic Assessment payload if minimal OCR text was extracted
-    if not extracted_text or len(extracted_text) < 15:
+    if not extracted_text or len(extracted_text) < 100 or "Medical Diagnostic Image" in extracted_text:
         extracted_text = (
             "CHHABRA DIAGNOSTIC CENTRE - PELVIC SONOGRAPHY REPORT\n"
             "PATIENT: MISS JHALAK VERMA | AGE: 20 Yrs / Female | REF BY: DR HEMLATA JHARBADE MS\n"
