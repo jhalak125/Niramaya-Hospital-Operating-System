@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// Use VITE_API_URL if defined, or live Render backend URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://niramaya-hospital-operating-system.onrender.com';
+// Ensure backend API requests always target full live Render origin
+let API_BASE_URL = 'https://niramaya-hospital-operating-system.onrender.com';
+if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.startsWith('http')) {
+  API_BASE_URL = import.meta.env.VITE_API_URL;
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
