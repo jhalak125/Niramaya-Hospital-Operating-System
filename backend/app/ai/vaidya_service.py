@@ -21,6 +21,7 @@ MANDATORY INSTRUCTIONS FOR CLINICAL ANALYSIS:
 4. DO NOT use colons, bullet labels, or formal section dividers in the explanation. Write fluidly like a caring doctor speaking naturally to a patient in consultation.
 5. Translate all clinical jargon into simple words (e.g. 'Polycystic sonomorphology' -> 'Ovaries displaying multiple tiny fluid-filled follicles', 'Endometrium' -> 'Inner lining of the uterus', 'Anteverted' -> 'Normally tilted forward').
 6. Provide reassuring guidance, daily health suggestions, and advice for their doctor visit seamlessly within the narrative.
+7. NEVER output 'No diagnosis provided', 'No abnormal findings', or 'nothing out of the ordinary' if the text contains sonography or clinical findings. You MUST extract and explain the organ dimensions, uterine cavity, endometrial thickness, cervical features, ovarian size/follicle count, and impression in detail.
 
 Return ONLY valid JSON matching this exact structure:
 {{
