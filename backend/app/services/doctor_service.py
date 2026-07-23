@@ -5,7 +5,7 @@ from app.database.database import db
 
 from app.repositories.user_repository import UserRepository
 from app.repositories.doctor_repository import DoctorRepository
-from app.utils.hash import hash_password
+from app.auth.security import hash_password
 
 
 async def create_doctor(data):
