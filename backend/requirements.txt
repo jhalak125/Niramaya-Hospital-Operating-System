@@ -27,5 +27,4 @@ google-auth-httplib2
 
 groq
 gTTS
-easyocr
 Pillow

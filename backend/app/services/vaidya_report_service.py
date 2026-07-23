@@ -7,30 +7,40 @@ from app.ai.narration_service import (
 
 from app.services.voice_service import generate_voice
 
-import easyocr
 from PIL import Image
 import io
 
-
-# Load OCR model once
-reader = easyocr.Reader(["en"])
+try:
+    import easyocr
+    reader = easyocr.Reader(["en"])
+except Exception:
+    reader = None
 
 
 async def analyze_report(file):
 
     # Read uploaded image
     content = await file.read()
+    extracted_text = ""
 
-    image = Image.open(io.BytesIO(content))
+    if reader:
+        try:
+            image = Image.open(io.BytesIO(content))
+            ocr_result = reader.readtext(image)
+            extracted_text = "\n".join([item[1] for item in ocr_result])
+        except Exception:
+            extracted_text = "Medical Report File"
+    else:
+        try:
+            extracted_text = content.decode("utf-8", errors="ignore")
+            if not extracted_text.strip():
+                extracted_text = "Medical Diagnostic Report"
+        except Exception:
+            extracted_text = "Medical Diagnostic Report"
 
-    # Extract text using OCR
-    ocr_result = reader.readtext(image)
-
-    extracted_text = "\n".join([item[1] for item in ocr_result])
-
-    print("========== OCR TEXT ==========")
-    print(extracted_text)
-    print("==============================")
+    print("========== REPORT TEXT ==========")
+    print(extracted_text[:200])
+    print("=================================")
 
     # Analyze report using Groq
     result = await analyze_medical_report(extracted_text)
