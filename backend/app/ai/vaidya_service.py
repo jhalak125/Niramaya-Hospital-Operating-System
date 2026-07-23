@@ -1,14 +1,24 @@
 import json
-
+import re
 from app.ai.groq_service import client
+
+
+def _clean_narrative(text: str) -> str:
+    if not text:
+        return ""
+    cleaned = re.sub(r'^(What was found|Is it serious|Lifestyle suggestions|Questions to ask your doctor|Summary|Findings|Severity|Advice)\s*:?\s*', '', text, flags=re.MULTILINE | re.IGNORECASE)
+    cleaned = re.sub(r'^[A-Z][a-zA-Z\s]{1,35}:\s*$', '', cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r'^\s*[\*\-\•]\s*', '', cleaned, flags=re.MULTILINE)
+    lines = [line.strip() for line in cleaned.split('\n') if line.strip()]
+    return '\n\n'.join(lines)
 
 
 async def analyze_medical_report(report_text: str):
 
     prompt = f"""
-You are Vaidya AI, an expert medical report interpreter and compassionate clinical assistant.
+You are Dr. Vaidya, an experienced senior medical doctor and clinical radiologist consulting directly with patient Miss Jhalak Verma.
 
-Below is the extracted text from a medical diagnostic report (Sonography / Ultrasound, Blood Test, X-Ray, CT Scan, MRI, Pathology, or Clinical Lab Report):
+Below is the text extracted from a patient's printed medical report:
 
 ---
 {report_text}
@@ -17,8 +27,8 @@ Below is the extracted text from a medical diagnostic report (Sonography / Ultra
 MANDATORY INSTRUCTIONS FOR CLINICAL ANALYSIS:
 1. Thoroughly analyze all patient details, diagnostic findings, organ measurements, lab values, and clinical impressions in the report.
 2. Write a warm, clear, conversational doctor-to-patient narrative in simple layman language that explains all findings line by line.
-3. DO NOT use robotic section titles or headings like "What was found:", "Is it serious:", "Lifestyle suggestions:", or "Questions to ask your doctor:".
-4. DO NOT use colons, bullet labels, or formal section dividers in the explanation. Write fluidly like a caring doctor speaking naturally to a patient in consultation.
+3. FORBIDDEN: Do NOT use any headings, titles, section names, colons, bullet points, numbered lists, or section labels anywhere in your text.
+4. Output plain, continuous narrative paragraphs as if speaking naturally to a patient in consultation.
 5. Translate all clinical jargon into simple words (e.g. 'Polycystic sonomorphology' -> 'Ovaries displaying multiple tiny fluid-filled follicles', 'Endometrium' -> 'Inner lining of the uterus', 'Anteverted' -> 'Normally tilted forward').
 6. Provide reassuring guidance, daily health suggestions, and advice for their doctor visit seamlessly within the narrative.
 7. NEVER output 'No diagnosis provided', 'No abnormal findings', or 'nothing out of the ordinary' if the text contains sonography or clinical findings. You MUST extract and explain the organ dimensions, uterine cavity, endometrial thickness, cervical features, ovarian size/follicle count, and impression in detail.
@@ -42,7 +52,7 @@ Return ONLY valid JSON matching this exact structure:
         messages=[
             {
                 "role": "system",
-                "content": "You are Vaidya AI, an expert medical report interpreter. Always return structured JSON with detailed, simple layman explanations of diagnostic findings."
+                "content": "You are Dr. Vaidya, an expert medical report interpreter. Always return structured JSON with detailed, simple layman explanations of diagnostic findings."
             },
             {
                 "role": "user",
@@ -61,4 +71,7 @@ Return ONLY valid JSON matching this exact structure:
                 .strip()
         )
 
-    return json.loads(text)
+    parsed = json.loads(text)
+    if isinstance(parsed, dict) and "layman_explanation" in parsed:
+        parsed["layman_explanation"] = _clean_narrative(parsed["layman_explanation"])
+    return parsed
