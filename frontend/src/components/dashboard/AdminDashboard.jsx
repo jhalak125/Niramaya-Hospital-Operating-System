@@ -32,6 +32,22 @@ export const AdminDashboard = () => {
   const [paymentsList, setPaymentsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview'); // overview | doctors | patients | appointments | bills
+  const [errorMsg, setErrorMsg] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
+  const [doctorForm, setDoctorForm] = useState({
+    user_id: '',
+    doctor_name: '',
+    department: 'General Medicine',
+    specialization: 'Senior Physician',
+    qualification: 'MBBS, MD',
+    experience: 5,
+    consultation_fee: 1000,
+    working_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    start_time: '09:00 AM',
+    end_time: '05:00 PM',
+    status: 'available',
+  });
 
   const fetchAdminData = async () => {
     setLoading(true);
