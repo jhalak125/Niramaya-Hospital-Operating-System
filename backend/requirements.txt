@@ -24,3 +24,8 @@ pydantic-settings==2.11.0
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
+
+groq
+gTTS
+easyocr
+Pillow
