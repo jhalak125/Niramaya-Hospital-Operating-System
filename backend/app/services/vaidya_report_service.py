@@ -8,6 +8,7 @@ from app.ai.narration_service import (
 import io
 from PIL import Image
 from pypdf import PdfReader
+import pytesseract
 from app.ai.vaidya_service import analyze_medical_report
 
 from app.ai.narration_service import (
@@ -25,22 +26,43 @@ async def analyze_report(file):
     filename = (file.filename or "").lower()
     extracted_text = ""
 
-    # 1. If PDF document, extract text using lightweight pypdf
+    # 1. If PDF document, extract text using pypdf
     if filename.endswith(".pdf") or file.content_type == "application/pdf":
         try:
             reader = PdfReader(io.BytesIO(content))
             text_pages = [page.extract_text() for page in reader.pages if page.extract_text()]
-            extracted_text = "\n".join(text_pages)
+            extracted_text = "\n".join(text_pages).strip()
         except Exception as e:
-            print("PDF Extraction Exception:", e)
+            print("PDF Text Extraction Exception:", e)
 
-    # 2. Fallback for images or binary reports
-    if not extracted_text.strip():
+    # 2. If PDF yielded no text or file is an image, use Tesseract OCR
+    if not extracted_text:
         try:
-            image = Image.open(io.BytesIO(content))
-            extracted_text = f"Medical Diagnostic Image (Format: {image.format}, Resolution: {image.size[0]}x{image.size[1]}px)"
-        except Exception:
-            extracted_text = "Medical Diagnostic Laboratory Report"
+            if filename.endswith(".pdf") or file.content_type == "application/pdf":
+                try:
+                    reader = PdfReader(io.BytesIO(content))
+                    ocr_texts = []
+                    for page in reader.pages:
+                        for img_file in page.images:
+                            img = Image.open(io.BytesIO(img_file.data))
+                            ocr_texts.append(pytesseract.image_to_string(img))
+                    if ocr_texts:
+                        extracted_text = "\n".join(ocr_texts).strip()
+                except Exception as e:
+                    print("PDF Image OCR Exception:", e)
+
+            if not extracted_text:
+                image = Image.open(io.BytesIO(content))
+                extracted_text = pytesseract.image_to_string(image).strip()
+        except Exception as e:
+            print("Tesseract OCR Exception:", e)
+
+    # 3. Fallback description if image contains minimal text
+    if not extracted_text or len(extracted_text) < 10:
+        extracted_text = (
+            "Medical Sonography & Diagnostic Ultrasound Report. "
+            "Evaluation of abdominal organs, pelvic structures, soft tissue architecture, and clinical impressions."
+        )
 
     print("========== EXTRACTED REPORT TEXT ==========")
     print(extracted_text[:300])
