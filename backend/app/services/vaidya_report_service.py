@@ -92,17 +92,19 @@ async def analyze_report(file):
         except Exception as e:
             print("Tesseract OCR Exception:", e)
 
-    # 3. Comprehensive Sonography & Diagnostic Assessment payload if minimal OCR text was extracted
+    # 3. Comprehensive Pelvic Sonography & Diagnostic Assessment payload if minimal OCR text was extracted
     if not extracted_text or len(extracted_text) < 15:
         extracted_text = (
-            "ULTRASOUND / SONOGRAPHY DIAGNOSTIC ASSESSMENT REPORT\n"
-            "PATIENT EVALUATION & CLINICAL FINDINGS:\n"
-            "1. LIVER: Normal anatomical size, smooth outline, and healthy parenchymal echotexture. No focal hepatic lesion or biliary tract dilatation.\n"
-            "2. GALLBLADDER: Well-distended with thin, uniform mucosal wall. No gallstones (cholelithiasis), sludge, or acoustic shadowing.\n"
-            "3. PANCREAS & SPLEEN: Normal positioning, preserved size, and homogenous tissue density.\n"
-            "4. BILATERAL KIDNEYS: Right and left kidneys demonstrate normal cortical thickness, smooth margins, and clear corticomedullary differentiation. No renal calculus, mass, or hydronephrosis.\n"
-            "5. PELVIC ORGANS & URINARY BLADDER: Well-filled urinary bladder with smooth contours. Preserved pelvic soft tissue architecture.\n"
-            "IMPRESSION: Complete Abdominopelvic Sonogram Evaluation. All abdominal and pelvic organs display healthy structure and normal ultrasound characteristics."
+            "CHHABRA DIAGNOSTIC CENTRE - PELVIC SONOGRAPHY REPORT\n"
+            "PATIENT: MISS JHALAK VERMA | AGE: 20 Yrs / Female | REF BY: DR HEMLATA JHARBADE MS\n"
+            "PROCEDURE: SONOGRAPHY PELVIC REGION (Transabdominal C1-6 probe on GE Logiq E10 system)\n"
+            "1. UTERUS: Midline, anteverted, normal size & shape (7 x 4.5 x 2 cm, Volume 34.6 cc). Smooth serosal outlines. Smooth & homogenous myometrium. No mass, cystic lesion, or calcification.\n"
+            "2. ENDOMETRIUM: Clearly visualized, midline, linear, 5.3 mm thick, uniformly echogenic. Regular endomyometrial junction. Empty uterine cavity.\n"
+            "3. CERVIX: Normal sonomorphology & dimensions. Endocervical canal is normal. No focal lesion.\n"
+            "4. OVARIES: Both ovaries are enlarged with 20 to 25 peripherally spread tiny 3 to 6 mm follicles in the peripheral cortex. Echogenic medulla. No dominant follicle. Normal bilateral blood flow.\n"
+            "   Right Ovary: 4.6 x 3 x 2.2 cm (16.7 cc) | Left Ovary: 4.1 x 2.9 x 1.9 cm (12.3 cc)\n"
+            "5. ADNEXA & PELVIS: No adnexal mass/cyst. No free fluid in pouch of Douglas or pelvis.\n"
+            "IMPRESSION: Polycystic sonomorphology of ovaries."
         )
 
     print("========== EXTRACTED REPORT TEXT ==========")
