@@ -127,8 +127,10 @@ export const DoctorsPage = () => {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-0.5">{doc.specialization}</h3>
-                    <p className="text-xs font-bold text-brand-700">{doc.department} Department</p>
+                    <h3 className="text-lg font-bold text-slate-900 mb-0.5">
+                      {doc.doctor_name || doc.full_name || `Dr. ${doc.specialization}`}
+                    </h3>
+                    <p className="text-xs font-bold text-brand-700">{doc.department} Department • {doc.specialization}</p>
                   </div>
 
                   <div className="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
