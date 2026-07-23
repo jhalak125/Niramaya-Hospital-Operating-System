@@ -154,22 +154,85 @@ async def get_all_appointments():
 
 
 async def get_patient_appointments(user_id):
-    ids = [str(user_id)]
-    patient = await PatientRepository.get_by_user_id(str(user_id))
-    if patient:
-        ids.extend([str(patient.get("_id")), str(patient.get("user_id"))])
+    user_id_str = str(user_id)
+    ids = [user_id_str]
+
+    try:
+        user_doc = await db.users.find_one({
+            "$or": [
+                {"_id": ObjectId(user_id_str) if ObjectId.is_valid(user_id_str) else None},
+                {"_id": user_id_str},
+                {"email": user_id_str}
+            ]
+        })
+        if user_doc:
+            ids.append(str(user_doc.get("_id")))
+            patient_email = user_doc.get("email")
+            if patient_email:
+                pats = await db.patients.find({"email": patient_email}).to_list(None)
+                for p in pats:
+                    ids.extend([str(p.get("_id")), str(p.get("user_id"))])
+    except Exception:
+        pass
+
+    try:
+        pat = await db.patients.find_one({
+            "$or": [
+                {"_id": ObjectId(user_id_str) if ObjectId.is_valid(user_id_str) else None},
+                {"_id": user_id_str},
+                {"user_id": user_id_str}
+            ]
+        })
+        if pat:
+            ids.extend([str(pat.get("_id")), str(pat.get("user_id"))])
+    except Exception:
+        pass
+
     clean_ids = list(set([i for i in ids if i]))
 
-    cursor = db.appointments.find({"patient_id": {"$in": clean_ids}}).sort("appointment_date", 1)
+    cursor = db.appointments.find({"$or": [
+        {"patient_id": {"$in": clean_ids}},
+        {"user_id": {"$in": clean_ids}}
+    ]}).sort("appointment_date", 1)
     appointments = await cursor.to_list(None)
     return [clean_mongo_doc(a) for a in appointments]
 
 
 async def get_doctor_appointments(user_id):
-    ids = [str(user_id)]
-    doctor = await DoctorRepository.get_by_user(str(user_id))
-    if doctor:
-        ids.extend([str(doctor.get("_id")), str(doctor.get("user_id"))])
+    user_id_str = str(user_id)
+    ids = [user_id_str]
+
+    try:
+        doc_user = await db.users.find_one({
+            "$or": [
+                {"_id": ObjectId(user_id_str) if ObjectId.is_valid(user_id_str) else None},
+                {"_id": user_id_str},
+                {"email": user_id_str}
+            ]
+        })
+        if doc_user:
+            ids.append(str(doc_user.get("_id")))
+            doc_email = doc_user.get("email")
+            if doc_email:
+                docs = await db.doctors.find({"email": doc_email}).to_list(None)
+                for d in docs:
+                    ids.extend([str(d.get("_id")), str(d.get("user_id"))])
+    except Exception:
+        pass
+
+    try:
+        doc = await db.doctors.find_one({
+            "$or": [
+                {"_id": ObjectId(user_id_str) if ObjectId.is_valid(user_id_str) else None},
+                {"_id": user_id_str},
+                {"user_id": user_id_str}
+            ]
+        })
+        if doc:
+            ids.extend([str(doc.get("_id")), str(doc.get("user_id"))])
+    except Exception:
+        pass
+
     clean_ids = list(set([i for i in ids if i]))
 
     cursor = db.appointments.find({"doctor_id": {"$in": clean_ids}}).sort("appointment_date", 1)
@@ -177,20 +240,12 @@ async def get_doctor_appointments(user_id):
 
     result = []
     for appointment in appointments:
-        pat = await PatientRepository.get_by_id(appointment["patient_id"])
-        appt_id = str(appointment["_id"])
-        result.append({
-            "_id": appt_id,
-            "id": appt_id,
-            "appointment_id": appt_id,
-            "patient_id": str(appointment.get("patient_id", "")),
-            "patient_name": pat["full_name"] if pat else "Patient",
-            "appointment_date": appointment.get("appointment_date", ""),
-            "date": appointment.get("appointment_date", ""),
-            "time_slot": appointment.get("time_slot", ""),
-            "reason": appointment.get("reason", ""),
-            "status": appointment.get("status", "scheduled")
-        })
+        clean_a = clean_mongo_doc(appointment)
+        pat = await PatientRepository.get_by_id(clean_a.get("patient_id", ""))
+        if not pat:
+            pat = await PatientRepository.get_by_user_id(clean_a.get("patient_id", ""))
+        clean_a["patient_name"] = pat.get("full_name") if pat else "Patient User"
+        result.append(clean_a)
     return result
 
 
