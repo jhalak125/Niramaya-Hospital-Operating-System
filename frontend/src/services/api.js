@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-// Ensure backend API requests always target full live Render origin
-let API_BASE_URL = 'https://niramaya-hospital-operating-system.onrender.com';
-if (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.startsWith('http')) {
-  API_BASE_URL = import.meta.env.VITE_API_URL;
-}
+// Automatically target local backend on localhost, or live Render origin in production
+const isLocalhost = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const API_BASE_URL = import.meta.env.VITE_API_URL ||
+  (isLocalhost ? 'http://localhost:8000' : 'https://niramaya-hospital-operating-system.onrender.com');
 
 const api = axios.create({
   baseURL: API_BASE_URL,

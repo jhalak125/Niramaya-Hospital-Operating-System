@@ -16,7 +16,7 @@ class Settings:
         os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
     )
 
-    BASE_URL = os.getenv("BASE_URL") or "https://niramaya-hospital-operating-system.onrender.com"
+    BASE_URL = os.getenv("BASE_URL") or "http://localhost:8000"
 
     SMTP_HOST = os.getenv("SMTP_HOST")
     SMTP_PORT = int(os.getenv("SMTP_PORT"))
