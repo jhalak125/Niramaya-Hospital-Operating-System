@@ -16,6 +16,7 @@ router = APIRouter(
 )
 
 
+@router.post("")
 @router.post("/")
 async def generate_bill(
     bill: BillCreate,
@@ -24,6 +25,7 @@ async def generate_bill(
     return await create_bill(bill)
 
 
+@router.get("")
 @router.get("/")
 async def get_all_bills_route(
     current_user=Depends(require_admin_or_doctor)

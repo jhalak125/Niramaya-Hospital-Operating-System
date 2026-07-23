@@ -31,6 +31,7 @@ router = APIRouter(
 )
 
 
+@router.post("")
 @router.post("/")
 async def create(
     data: AppointmentCreate,
@@ -43,6 +44,7 @@ async def create(
     )
 
 
+@router.get("")
 @router.get("/")
 async def all_appointments(
     current_user=Depends(require_roles("admin"))

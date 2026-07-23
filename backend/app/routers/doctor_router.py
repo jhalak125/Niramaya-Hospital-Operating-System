@@ -21,6 +21,7 @@ router = APIRouter(
 )
 
 
+@router.post("")
 @router.post("/")
 async def add_doctor(
     doctor: DoctorCreate,
@@ -32,6 +33,7 @@ async def add_doctor(
 from app.services.doctor_service import get_all_doctors
 
 
+@router.get("")
 @router.get("/")
 async def get_all():
     return await get_all_doctors()

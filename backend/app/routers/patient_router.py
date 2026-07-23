@@ -12,6 +12,7 @@ router = APIRouter(
 )
 
 
+@router.post("")
 @router.post("/")
 async def add_patient(
     patient: PatientCreate,
@@ -37,6 +38,7 @@ async def fetch_patient(
 ):
     return await get_patient(patient_id)
 
+@router.get("")
 @router.get("/")
 async def fetch_all_patients(
     current_user=Depends(
