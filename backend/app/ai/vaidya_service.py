@@ -80,11 +80,13 @@ Return ONLY valid JSON matching this exact structure:
         generic_keywords = [
             "no information", "no summary", "no diagnosis", "no medical condition",
             "no abnormalities", "no specific findings", "no abnormal findings",
-            "no details", "template", "unknown", "insufficient", "not available"
+            "no details", "template", "unknown", "insufficient", "not available",
+            "nothing", "format png", "format jpg", "resolution", "1000x700", "visual tool"
         ]
         is_generic_fallback = (
             any(kw in combined for kw in generic_keywords)
-            or (("no" in combined or "not" in combined) and any(w in combined for w in ["summary", "finding", "abnormal", "detail", "diagnosis", "information", "condition", "specific"]))
+            or (("no" in combined or "not" in combined or "nothing" in combined) and any(w in combined for w in ["summary", "finding", "abnormal", "detail", "diagnosis", "information", "condition", "specific", "report"]))
+            or ("format" in combined and "px" in combined)
         )
 
         if is_generic_fallback:
