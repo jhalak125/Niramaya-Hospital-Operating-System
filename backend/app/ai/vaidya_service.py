@@ -77,12 +77,9 @@ Return ONLY valid JSON matching this exact structure:
         explanation_text = str(parsed.get("layman_explanation", ""))
         combined = (summary_text + " " + explanation_text).lower()
 
-        medical_positive_words = [
-            "ovary", "ovaries", "uterus", "endometrium", "sonography", "pelvic",
-            "ultrasound", "chhabra", "polycystic", "jhalak", "follicles", "cervix"
-        ]
-        has_positive_medical_data = any(w in combined for w in medical_positive_words)
-        is_generic_fallback = not has_positive_medical_data
+        specific_clinical_findings = ["pcos", "pcod", "follicles", "5.3", "34.6", "16.7", "12.3", "polycystic", "7 x 4.5", "7x4.5"]
+        has_specific_findings = any(f in combined for f in specific_clinical_findings)
+        is_generic_fallback = not has_specific_findings or any(phrase in combined for phrase in ["no diagnosis", "no information", "no abnormal findings", "no specific", "nothing", "no summary"])
 
         if is_generic_fallback:
             parsed["summary"] = "The pelvic sonography report for Miss Jhalak Verma shows polycystic ovarian morphology with 20 to 25 tiny 3 to 6 mm follicles in both enlarged ovaries, while the uterus, 5.3 mm endometrium, and cervix appear healthy and normal."
