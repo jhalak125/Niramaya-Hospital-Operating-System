@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Use Vite proxy '/api' when in dev server, or direct backend origin
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Use VITE_API_URL if defined, or live Render backend URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://niramaya-hospital-operating-system.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
