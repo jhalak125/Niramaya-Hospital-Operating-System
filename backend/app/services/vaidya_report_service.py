@@ -5,42 +5,46 @@ from app.ai.narration_service import (
     generate_hindi_narration,
 )
 
-from app.services.voice_service import generate_voice
-
-from PIL import Image
 import io
+from PIL import Image
+from pypdf import PdfReader
+from app.ai.vaidya_service import analyze_medical_report
 
-try:
-    import easyocr
-    reader = easyocr.Reader(["en"])
-except Exception:
-    reader = None
+from app.ai.narration_service import (
+    generate_english_narration,
+    generate_hindi_narration,
+)
+
+from app.services.voice_service import generate_voice
 
 
 async def analyze_report(file):
 
-    # Read uploaded image
+    # Read uploaded file
     content = await file.read()
+    filename = (file.filename or "").lower()
     extracted_text = ""
 
-    if reader:
+    # 1. If PDF document, extract text using lightweight pypdf
+    if filename.endswith(".pdf") or file.content_type == "application/pdf":
+        try:
+            reader = PdfReader(io.BytesIO(content))
+            text_pages = [page.extract_text() for page in reader.pages if page.extract_text()]
+            extracted_text = "\n".join(text_pages)
+        except Exception as e:
+            print("PDF Extraction Exception:", e)
+
+    # 2. Fallback for images or binary reports
+    if not extracted_text.strip():
         try:
             image = Image.open(io.BytesIO(content))
-            ocr_result = reader.readtext(image)
-            extracted_text = "\n".join([item[1] for item in ocr_result])
+            extracted_text = f"Medical Diagnostic Image (Format: {image.format}, Resolution: {image.size[0]}x{image.size[1]}px)"
         except Exception:
-            extracted_text = "Medical Report File"
-    else:
-        try:
-            extracted_text = content.decode("utf-8", errors="ignore")
-            if not extracted_text.strip():
-                extracted_text = "Medical Diagnostic Report"
-        except Exception:
-            extracted_text = "Medical Diagnostic Report"
+            extracted_text = "Medical Diagnostic Laboratory Report"
 
-    print("========== REPORT TEXT ==========")
-    print(extracted_text[:200])
-    print("=================================")
+    print("========== EXTRACTED REPORT TEXT ==========")
+    print(extracted_text[:300])
+    print("===========================================")
 
     # Analyze report using Groq
     result = await analyze_medical_report(extracted_text)
