@@ -35,7 +35,9 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    // If proxied /api returned network error, try fallback directly to http://127.0.0.1:8000
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('niramaya_token');
+    }
     const message =
       error.response?.data?.detail ||
       error.response?.data?.message ||
