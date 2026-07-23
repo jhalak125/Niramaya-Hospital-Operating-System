@@ -14,25 +14,25 @@ Below is the extracted text from a medical diagnostic report (Sonography / Ultra
 {report_text}
 ---
 
-MANDATORY RULES FOR LAYMAN EXPLANATION:
-1. Explain every clinical finding, organ measurement, impression, and diagnostic observation in simple, easy-to-understand everyday language.
-2. Provide a clear organ-by-organ breakdown (e.g. Liver, Gallbladder, Pancreas, Spleen, Kidneys, Pelvic/Bladder organs).
-3. Translate all medical terms into plain English (e.g. 'echotexture' -> 'tissue density on ultrasound', 'calculus' -> 'stone', 'cholelithiasis' -> 'gallstones').
-4. NEVER say 'no report provided', 'there is not much information to work with', 'starting fresh', or 'nothing serious'. You MUST provide a complete, detailed, informative explanation.
-5. Provide actionable, practical lifestyle suggestions tailored to maintaining healthy organ function.
-6. Provide helpful, specific questions the patient can ask their doctor.
+MANDATORY INSTRUCTIONS FOR CLINICAL ANALYSIS:
+1. Thoroughly analyze all patient details, diagnostic findings, organ measurements, lab values, and clinical impressions in the report.
+2. Write a warm, clear, conversational doctor-to-patient narrative in simple layman language that explains all findings line by line.
+3. DO NOT use robotic section titles or headings like "What was found:", "Is it serious:", "Lifestyle suggestions:", or "Questions to ask your doctor:".
+4. DO NOT use colons, bullet labels, or formal section dividers in the explanation. Write fluidly like a caring doctor speaking naturally to a patient in consultation.
+5. Translate all clinical jargon into simple words (e.g. 'Polycystic sonomorphology' -> 'Ovaries displaying multiple tiny fluid-filled follicles', 'Endometrium' -> 'Inner lining of the uterus', 'Anteverted' -> 'Normally tilted forward').
+6. Provide reassuring guidance, daily health suggestions, and advice for their doctor visit seamlessly within the narrative.
 
 Return ONLY valid JSON matching this exact structure:
 {{
   "summary": "Clear 2-3 sentence overview of the report findings",
   "report_type": "Sonography / Ultrasound / Blood Test / Radiology Report",
   "abnormal_findings": ["Finding 1 with explanation", "Finding 2 with explanation"],
-  "layman_explanation": "Detailed, organ-by-organ breakdown of the report findings in simple, easy-to-understand layman language...",
+  "layman_explanation": "Warm, conversational doctor-to-patient narrative explaining all findings line by line in simple everyday language...",
   "lifestyle_suggestions": ["Specific practical health suggestion 1", "Specific practical health suggestion 2"],
   "questions_to_ask_doctor": ["What does this finding mean for my daily health?", "Do I need any follow-up ultrasound scan or test?"],
   "severity": "Normal | Mild | Moderate | Urgent",
-  "hindi_explanation": "Comprehensive explanation of findings in clear, simple Hindi (हिंदी विवरण)...",
-  "disclaimer": "This explanation is for educational understanding only and is not a substitute for professional medical diagnosis. Please consult a qualified doctor."
+  "hindi_explanation": "हिंदी में डॉक्टर-मरीज बातचीत शैली में सरल व्याख्या...",
+  "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
 }}
 """
 
