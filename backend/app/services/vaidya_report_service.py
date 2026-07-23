@@ -19,6 +19,39 @@ from app.ai.narration_service import (
 from app.services.voice_service import generate_voice
 
 
+from PIL import ImageEnhance
+import shutil
+
+tesseract_bin = shutil.which("tesseract") or "/usr/bin/tesseract" or "/usr/local/bin/tesseract" or "/opt/homebrew/bin/tesseract"
+if tesseract_bin:
+    try:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_bin
+    except Exception:
+        pass
+
+
+def _ocr_image_preprocess(img):
+    try:
+        if img.mode not in ("L", "RGB"):
+            img = img.convert("RGB")
+        w, h = img.size
+        if w < 1200:
+            scale = 1200.0 / w
+            img = img.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
+        gray = img.convert("L")
+        enhancer = ImageEnhance.Contrast(gray)
+        enhanced = enhancer.enhance(2.0)
+        txt = pytesseract.image_to_string(enhanced, config="--psm 3").strip()
+        if not txt:
+            txt = pytesseract.image_to_string(img, config="--psm 6").strip()
+        if not txt:
+            txt = pytesseract.image_to_string(img).strip()
+        return txt
+    except Exception as e:
+        print("Image Preprocessing OCR Exception:", e)
+        return ""
+
+
 async def analyze_report(file):
 
     # Read uploaded file
@@ -45,7 +78,9 @@ async def analyze_report(file):
                     for page in reader.pages:
                         for img_file in page.images:
                             img = Image.open(io.BytesIO(img_file.data))
-                            ocr_texts.append(pytesseract.image_to_string(img))
+                            txt = _ocr_image_preprocess(img)
+                            if txt:
+                                ocr_texts.append(txt)
                     if ocr_texts:
                         extracted_text = "\n".join(ocr_texts).strip()
                 except Exception as e:
@@ -53,7 +88,7 @@ async def analyze_report(file):
 
             if not extracted_text:
                 image = Image.open(io.BytesIO(content))
-                extracted_text = pytesseract.image_to_string(image).strip()
+                extracted_text = _ocr_image_preprocess(image)
         except Exception as e:
             print("Tesseract OCR Exception:", e)
 
