@@ -45,7 +45,7 @@ export const HomePage = () => {
 
     try {
       const res = await medicalService.symptomCheck(symptomsInput);
-      setSymptomResult(res?.analysis || res);
+      setSymptomResult(res?.data?.analysis || res?.data || res?.analysis || res);
     } catch (err) {
       setSymptomError(err.message || 'Failed to complete AI symptom analysis');
     } finally {

@@ -17,5 +17,6 @@ async def symptom_checker(
     )
 
     return {
-        "analysis": result
+        "success": True,
+        "data": result
     }
