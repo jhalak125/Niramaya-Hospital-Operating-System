@@ -6,8 +6,7 @@ from uuid import uuid4
 
 from app.repositories.appointment_repository import AppointmentRepository
 from app.repositories.medical_record_repository import MedicalRecordRepository
-from app.services.audit_log_service import create_audit_log
-
+from app.config import settings
 
 UPLOAD_DIR = "uploads/medical_records"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -69,22 +68,26 @@ async def create_medical_record(
     }
 
 
+def _format_attachment_url(record):
+    record["_id"] = str(record["_id"])
+    if record.get("attachment"):
+        att = record["attachment"]
+        if att.startswith("http://") or att.startswith("https://"):
+            record["attachment_url"] = att
+        else:
+            base = settings.BASE_URL.rstrip("/")
+            record["attachment_url"] = f"{base}/uploads/medical_records/{att}"
+    return record
+
+
 async def get_patient_records(patient_id):
     records = await MedicalRecordRepository.get_by_patient(patient_id)
-    for record in records:
-        record["_id"] = str(record["_id"])
-        if record.get("attachment"):
-            record["attachment_url"] = f"/uploads/medical_records/{record['attachment']}"
-    return records
+    return [_format_attachment_url(r) for r in records]
 
 
 async def get_doctor_records(doctor_id):
     records = await MedicalRecordRepository.get_by_doctor(doctor_id)
-    for record in records:
-        record["_id"] = str(record["_id"])
-        if record.get("attachment"):
-            record["attachment_url"] = f"/uploads/medical_records/{record['attachment']}"
-    return records
+    return [_format_attachment_url(r) for r in records]
 
 
 async def get_record(record_id):
@@ -94,10 +97,7 @@ async def get_record(record_id):
             status_code=404,
             detail="Medical record not found"
         )
-    record["_id"] = str(record["_id"])
-    if record.get("attachment"):
-        record["attachment_url"] = f"/uploads/medical_records/{record['attachment']}"
-    return record
+    return _format_attachment_url(record)
 
 
 async def delete_record(record_id):
@@ -136,8 +136,4 @@ async def search_medical_records(
         sort_by,
         order
     )
-    for record in records:
-        record["_id"] = str(record["_id"])
-        if record.get("attachment"):
-            record["attachment_url"] = f"/uploads/medical_records/{record['attachment']}"
-    return records
+    return [_format_attachment_url(r) for r in records]

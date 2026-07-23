@@ -12,6 +12,8 @@ from app.repositories.appointment_repository import AppointmentRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.services.audit_log_service import create_audit_log
 
+from app.config import settings
+
 UPLOAD_DIR = "uploads/lab_reports"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -137,10 +139,15 @@ async def get_patient_reports(patient_id):
     ]}).to_list(None)
 
     cleaned_reports = []
+    base_domain = settings.BASE_URL.rstrip("/")
     for report in reports:
         report["_id"] = str(report["_id"])
         if report.get("report_file"):
-            report["report_url"] = f"/uploads/lab_reports/{report['report_file']}"
+            rf = report["report_file"]
+            if rf.startswith("http://") or rf.startswith("https://"):
+                report["report_url"] = rf
+            else:
+                report["report_url"] = f"{base_domain}/uploads/lab_reports/{rf}"
         cleaned_reports.append(report)
 
     return cleaned_reports

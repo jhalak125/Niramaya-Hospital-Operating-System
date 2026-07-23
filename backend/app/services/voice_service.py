@@ -2,6 +2,8 @@ from gtts import gTTS
 import uuid
 import os
 
+from app.config import settings
+
 AUDIO_DIR = "audio"
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
@@ -21,4 +23,5 @@ def generate_voice(text, lang):
 
     tts.save(filepath)
 
-    return f"/audio/{filename}"
+    base = settings.BASE_URL.rstrip("/")
+    return f"{base}/audio/{filename}"
