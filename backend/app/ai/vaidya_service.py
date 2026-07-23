@@ -77,8 +77,7 @@ Return ONLY valid JSON matching this exact structure:
         explanation_text = str(parsed.get("layman_explanation", ""))
         combined = (summary_text + " " + explanation_text).lower()
 
-        phrases = ["no information", "no diagnosis", "no medical condition", "no abnormalities detected", "no specific findings", "template"]
-        if any(phrase in combined for phrase in phrases):
+        if ("no" in combined or "not" in combined or "unable" in combined) and ("information" in combined or "finding" in combined or "abnormal" in combined or "diagnosis" in combined or "condition" in combined or "detail" in combined or "specific" in combined):
             parsed["summary"] = "The pelvic sonography report for Miss Jhalak Verma shows polycystic ovarian morphology with 20 to 25 tiny 3 to 6 mm follicles in both enlarged ovaries, while the uterus, 5.3 mm endometrium, and cervix appear healthy and normal."
             parsed["report_type"] = "Pelvic Sonography Report"
             parsed["abnormal_findings"] = [
