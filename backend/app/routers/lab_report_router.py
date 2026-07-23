@@ -14,6 +14,7 @@ router = APIRouter(
 )
 
 
+@router.post("")
 @router.post("/")
 async def create(
     lab_test_id: str = Form(...),

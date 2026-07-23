@@ -19,6 +19,7 @@ router = APIRouter(
 )
 
 
+@router.post("")
 @router.post("/")
 async def add_record(
     appointment_id: str = Form(...),
@@ -53,7 +54,7 @@ async def add_record(
 @router.get("/patient/{patient_id}")
 async def patient_records(
     patient_id: str,
-    current_user=Depends(require_roles("doctor", "admin"))
+    current_user=Depends(require_roles("patient", "doctor", "admin"))
 ):
     return await get_patient_records(patient_id)
 

@@ -13,6 +13,7 @@ router = APIRouter(
 )
 
 
+@router.post("")
 @router.post("/")
 async def create(
     prescription: PrescriptionCreate,
@@ -24,6 +25,6 @@ async def create(
 @router.get("/patient/{patient_id}")
 async def get_patient_history(
     patient_id: str,
-    current_user=Depends(require_roles("doctor", "admin"))
+    current_user=Depends(require_roles("patient", "doctor", "admin"))
 ):
     return await get_patient_prescriptions(patient_id)
