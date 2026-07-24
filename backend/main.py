@@ -33,7 +33,7 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI(
     title="Niramaya",
     description="AI-powered Hospital Management System",
-    version="1.0.0"
+    version="1.0.3"
 )
 
 app.add_middleware(
@@ -59,17 +59,16 @@ app.mount(
     StaticFiles(directory="uploads"),
     name="uploads"
 )
+
 app.add_exception_handler(
     HTTPException,
     http_exception_handler
 )
 
-
 app.add_exception_handler(
     RequestValidationError,
     validation_exception_handler
 )
-
 
 app.add_exception_handler(
     Exception,
@@ -104,7 +103,7 @@ async def root():
 
     return {
         "message": "Welcome to MediFlow",
-        "version": "1.0.2-dynamic-category-fix",
+        "version": "1.0.3-specific-radiologist-parameter-interpreter",
         "database": "Connected",
         "collections": collections
     }
