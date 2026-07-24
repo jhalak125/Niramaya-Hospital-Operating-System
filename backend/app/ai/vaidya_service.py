@@ -1,6 +1,5 @@
 import json
 import os
-import re
 from app.ai.groq_service import client
 from app.ai.github_models_service import call_github_models
 
@@ -8,7 +7,7 @@ from app.ai.github_models_service import call_github_models
 def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
     """
     Parses extracted document text to build a specific layman explanation
-    even when LLM APIs are rate-limited or unavailable.
+    matching Vaidya AI guidelines even when LLM APIs are rate-limited or unavailable.
     """
     combined = ((report_text or "") + " " + (filename or "")).lower()
 
@@ -34,7 +33,7 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
                 "Are any routine follow-up ultrasound scans recommended?"
             ],
             "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+            "disclaimer": "This is not a diagnosis. Consult a doctor."
         }
 
     # 2. Blood Test / Complete Blood Count (CBC)
@@ -55,7 +54,7 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
                 "Are any follow-up iron or vitamin profile checks advised?"
             ],
             "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+            "disclaimer": "This is not a diagnosis. Consult a doctor."
         }
 
     # 3. Chest X-Ray / Radiology
@@ -76,7 +75,7 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
                 "Are any follow-up chest imaging scans advised?"
             ],
             "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+            "disclaimer": "This is not a diagnosis. Consult a doctor."
         }
 
     # 4. Thyroid Function Profile
@@ -97,7 +96,7 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
                 "When should I repeat my routine thyroid checkup?"
             ],
             "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+            "disclaimer": "This is not a diagnosis. Consult a doctor."
         }
 
     # 5. Kidney Function Test (KFT)
@@ -118,7 +117,7 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
                 "Are there any specific dietary guidelines for me?"
             ],
             "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+            "disclaimer": "This is not a diagnosis. Consult a doctor."
         }
 
     # 6. Liver Function Test (LFT)
@@ -139,7 +138,7 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
                 "Are any follow-up liver checks advised?"
             ],
             "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+            "disclaimer": "This is not a diagnosis. Consult a doctor."
         }
 
     # 7. ECG / Cardiac Tracing
@@ -160,7 +159,7 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
                 "Do I need any follow-up cardiac evaluation?"
             ],
             "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+            "disclaimer": "This is not a diagnosis. Consult a doctor."
         }
 
     # 8. General Document Content Interpreter (Dynamic text lines included)
@@ -180,42 +179,53 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
             "Are any routine follow-up tests recommended?"
         ],
         "severity": "Normal",
-        "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+        "disclaimer": "This is not a diagnosis. Consult a doctor."
     }
 
 
 async def analyze_medical_report(report_text: str, filename: str = ""):
     """
-    Single Universal Master AI Prompt Engine for any uploaded medical image or PDF report.
-    Directly analyzes document content and generates an accurate layman explanation.
+    Vaidya AI Master Report Interpreter.
+    Analyzes uploaded medical report text and provides structured layman explanation.
     """
     prompt = f"""
-You are Dr. Vaidya, an expert medical report interpreter and compassionate specialist physician.
+You are Vaidya AI, a medical report explanation assistant.
 
-Below is the text extracted from a medical report (image or PDF document):
+Your job is NOT to diagnose diseases.
+
+Analyze the uploaded medical report:
 
 ---
 {report_text}
 ---
 
-INSTRUCTIONS:
-1. Thoroughly analyze all diagnostic parameters, lab values, organ measurements, imaging observations, and clinical findings present in the document.
-2. Explain what this specific report shows in warm, clear, plain layman language so any patient can easily understand it.
-3. Detail all key findings, normal/abnormal parameters, and what they mean for the patient's health and daily life.
-4. Provide practical lifestyle recommendations and specific questions for their doctor visit.
-5. Do NOT include raw filenames, robotic headings, or generic placeholder text.
+Explain everything in simple language understandable by a normal person.
+
+Provide:
+1. Overall summary
+2. Abnormal findings
+3. Explain each abnormal value
+4. Possible common reasons
+5. Lifestyle suggestions
+6. Questions patient can ask their doctor
+7. Severity level: Normal / Mild / Moderate / Urgent
+
+Avoid medical jargon.
+
+Always include:
+"This is not a diagnosis. Consult a doctor."
 
 Return ONLY valid JSON matching this exact structure:
 {{
-  "summary": "Clear 2-3 sentence overview of the exact report findings",
-  "report_type": "Specific report type identified from the text (e.g., Complete Blood Count, Chest X-Ray, Pelvic Ultrasound, Thyroid Profile, Liver Function Test, ECG, etc.)",
-  "abnormal_findings": ["Key finding 1 explained simply", "Key finding 2 explained simply"],
-  "layman_explanation": "Warm, conversational doctor explanation explaining all findings line by line in plain everyday language...",
-  "lifestyle_suggestions": ["Practical wellness advice 1", "Practical wellness advice 2"],
-  "questions_to_ask_doctor": ["Question for doctor 1", "Question for doctor 2"],
+  "summary": "Overall summary of the report in simple language",
+  "report_type": "Title or type of the medical report identified from the text",
+  "abnormal_findings": ["Abnormal finding 1 explained simply", "Abnormal finding 2 explained simply"],
+  "layman_explanation": "Warm, simple explanation of each value, possible common reasons, and what it means for a normal person in everyday language...",
+  "lifestyle_suggestions": ["Lifestyle suggestion 1", "Lifestyle suggestion 2"],
+  "questions_to_ask_doctor": ["Question patient can ask their doctor 1", "Question patient can ask their doctor 2"],
   "severity": "Normal | Mild | Moderate | Urgent",
-  "hindi_explanation": "हिंदी में सरल परामर्श शैली में संपूर्ण रिपोर्ट की स्पष्ट व्याख्या...",
-  "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+  "hindi_explanation": "हिंदी में सरल व्याख्या...",
+  "disclaimer": "This is not a diagnosis. Consult a doctor."
 }}
 """
 
@@ -226,7 +236,7 @@ Return ONLY valid JSON matching this exact structure:
         try:
             text = call_github_models(
                 prompt=prompt,
-                system_prompt="You are Dr. Vaidya, an expert medical report interpreter. Always return structured JSON.",
+                system_prompt="You are Vaidya AI, a medical report explanation assistant. Always return structured JSON.",
                 model="Meta-Llama-3.3-70B-Instruct"
             )
         except Exception as gh_err:
@@ -242,7 +252,7 @@ Return ONLY valid JSON matching this exact structure:
                     messages=[
                         {
                             "role": "system",
-                            "content": "You are Dr. Vaidya, an expert medical report interpreter. Always return structured JSON with detailed layman explanations of diagnostic findings."
+                            "content": "You are Vaidya AI, a medical report explanation assistant. Always return structured JSON."
                         },
                         {
                             "role": "user",
@@ -264,9 +274,9 @@ Return ONLY valid JSON matching this exact structure:
         try:
             parsed = json.loads(text)
             if isinstance(parsed, dict) and "layman_explanation" in parsed:
+                parsed["disclaimer"] = "This is not a diagnosis. Consult a doctor."
                 return parsed
         except Exception as json_err:
             print("JSON parse error:", json_err)
 
-    # Dynamic document content interpreter if LLM API rate limits
     return _build_dynamic_text_fallback(report_text, filename)
