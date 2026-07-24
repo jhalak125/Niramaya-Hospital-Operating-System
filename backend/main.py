@@ -33,7 +33,7 @@ from fastapi.staticfiles import StaticFiles
 app = FastAPI(
     title="Niramaya",
     description="AI-powered Hospital Management System",
-    version="1.1.1"
+    version="1.1.2"
 )
 
 app.add_middleware(
@@ -103,7 +103,7 @@ async def root():
 
     return {
         "message": "Welcome to MediFlow",
-        "version": "1.1.1-easyocr-no-tesseract",
+        "version": "1.1.2-numpy-requirements-fix",
         "database": "Connected",
         "collections": collections
     }

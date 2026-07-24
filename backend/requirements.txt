@@ -32,3 +32,5 @@ pypdf
 pytesseract
 requests
 openai
+numpy
+easyocr

@@ -7,13 +7,13 @@ from app.ai.narration_service import (
 
 import io
 import os
-import numpy as np
 from PIL import Image
 from pypdf import PdfReader
 
 from app.services.voice_service import generate_voice
 
 try:
+    import numpy as np
     import easyocr
     reader = easyocr.Reader(['en'], gpu=False)
 except Exception as err:
@@ -24,7 +24,7 @@ except Exception as err:
 def _ocr_image(img):
     """
     Extracts text from uploaded images using EasyOCR (pure Python PyTorch OCR).
-    Does NOT use Tesseract binary.
+    Does NOT rely on Tesseract binary.
     """
     if not reader:
         return ""
@@ -48,7 +48,7 @@ async def analyze_report(file):
     content_type = (file.content_type or "").lower()
     extracted_text = ""
 
-    # 1. If image file, extract text using EasyOCR (pure Python PyTorch OCR)
+    # 1. If image file, extract text using EasyOCR
     if any(ext in filename for ext in [".png", ".jpg", ".jpeg", ".webp"]) or content_type.startswith("image/"):
         try:
             image = Image.open(io.BytesIO(content))
