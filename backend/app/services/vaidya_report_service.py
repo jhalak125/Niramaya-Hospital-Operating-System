@@ -6,10 +6,9 @@ from app.ai.narration_service import (
 )
 
 import io
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageOps
 from pypdf import PdfReader
 from app.services.voice_service import generate_voice
-from PIL import ImageEnhance
 import shutil
 
 try:
@@ -31,27 +30,46 @@ def _ocr_image_preprocess(img):
         if img.mode not in ("L", "RGB"):
             img = img.convert("RGB")
         w, h = img.size
-        if w < 1600:
-            scale = 1600.0 / w
+        if w < 2000:
+            scale = 2000.0 / w
             img = img.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
 
         gray = img.convert("L")
-        enhancer = ImageEnhance.Contrast(gray)
-        enhanced = enhancer.enhance(2.5)
+        enhanced = ImageEnhance.Contrast(gray).enhance(3.0)
+        sharpened = ImageEnhance.Sharpness(enhanced).enhance(3.0)
+        inverted = ImageOps.invert(gray)
 
-        sharpener = ImageEnhance.Sharpness(enhanced)
-        sharpened = sharpener.enhance(2.0)
+        images_to_try = [gray, enhanced, sharpened, inverted]
+        extracted_lines = []
 
-        for config in ["--psm 3", "--psm 6", "--psm 4", "--psm 11", ""]:
-            try:
-                txt = pytesseract.image_to_string(sharpened, config=config).strip()
-                if txt and len(txt) > 20:
-                    return txt
-            except Exception:
-                pass
+        for im in images_to_try:
+            for config in ["--psm 3", "--psm 6", "--psm 4", "--psm 11", ""]:
+                try:
+                    txt = pytesseract.image_to_string(im, config=config).strip()
+                    if txt and len(txt) > 15:
+                        for line in txt.split("\n"):
+                            line_clean = line.strip()
+                            if line_clean and line_clean not in extracted_lines and len(line_clean) > 2:
+                                extracted_lines.append(line_clean)
+                except Exception:
+                    pass
 
-        txt = pytesseract.image_to_string(img).strip()
-        return txt
+        # If still no text, try 90 degree rotation steps (useful for sideways camera scans)
+        if not extracted_lines:
+            for angle in [90, 180, 270]:
+                try:
+                    rot = img.rotate(angle, expand=True)
+                    rot_gray = rot.convert("L")
+                    txt = pytesseract.image_to_string(rot_gray, config="--psm 3").strip()
+                    if txt and len(txt) > 15:
+                        for line in txt.split("\n"):
+                            line_clean = line.strip()
+                            if line_clean and line_clean not in extracted_lines:
+                                extracted_lines.append(line_clean)
+                except Exception:
+                    pass
+
+        return "\n".join(extracted_lines).strip()
     except Exception as e:
         print("Image Preprocessing OCR Exception:", e)
         return ""
@@ -102,8 +120,6 @@ async def analyze_report(file):
 
         if is_jhalak_pelvic:
             result = JHALAK_FALLBACK_PAYLOAD
-        elif not extracted_text or len(extracted_text) < 15:
-            result = _generate_dynamic_report_analysis("", filename=file.filename or "")
         else:
             result = await analyze_medical_report(extracted_text, filename=file.filename or "")
 
