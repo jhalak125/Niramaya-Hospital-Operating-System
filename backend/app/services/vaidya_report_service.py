@@ -6,19 +6,24 @@ from app.ai.narration_service import (
 )
 
 import io
+import os
+import shutil
 from PIL import Image, ImageEnhance, ImageOps
 from pypdf import PdfReader
 from app.services.voice_service import generate_voice
-import shutil
 
 try:
     import pytesseract
-    tesseract_bin = shutil.which("tesseract") or "/usr/bin/tesseract" or "/usr/local/bin/tesseract" or "/opt/homebrew/bin/tesseract"
-    if tesseract_bin:
-        try:
-            pytesseract.pytesseract.tesseract_cmd = tesseract_bin
-        except Exception:
-            pass
+    possible_paths = [
+        shutil.which("tesseract"),
+        "/usr/bin/tesseract",
+        "/usr/local/bin/tesseract",
+        "/opt/homebrew/bin/tesseract"
+    ]
+    for p in possible_paths:
+        if p and os.path.exists(p) and os.access(p, os.X_OK):
+            pytesseract.pytesseract.tesseract_cmd = p
+            break
 except ImportError:
     pytesseract = None
 
@@ -26,31 +31,45 @@ except ImportError:
 def _ocr_image_preprocess(img):
     """
     High-precision multi-pass OCR image preprocessor.
-    Applies image scaling, contrast sharpening, autocontrast, binarization, and rotation.
+    Safely executes pytesseract across original, contrast-enhanced, thresholded, and rotated images.
     """
     if not pytesseract:
         return ""
     try:
+        extracted_lines = []
+
+        # 1. Direct pass on raw original image (Fastest & most accurate for clear scans)
+        try:
+            raw_txt = pytesseract.image_to_string(img).strip()
+            if raw_txt:
+                for line in raw_txt.split("\n"):
+                    l = line.strip()
+                    if l and len(l) > 1:
+                        extracted_lines.append(l)
+        except Exception as e:
+            print("Raw OCR pass exception:", e)
+
+        # 2. Preprocessed passes (Grayscale, Contrast, Sharpness, Autocontrast, Inverted)
         if img.mode not in ("L", "RGB"):
             img = img.convert("RGB")
         w, h = img.size
-        if w < 2400:
-            scale = 2400.0 / w
-            img = img.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
+        if w < 2000:
+            scale = 2000.0 / w
+            img_scaled = img.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
+        else:
+            img_scaled = img
 
-        gray = img.convert("L")
-        enhanced = ImageEnhance.Contrast(gray).enhance(3.5)
-        sharpened = ImageEnhance.Sharpness(enhanced).enhance(3.5)
+        gray = img_scaled.convert("L")
+        enhanced = ImageEnhance.Contrast(gray).enhance(2.5)
+        sharpened = ImageEnhance.Sharpness(enhanced).enhance(2.5)
         auto = ImageOps.autocontrast(gray)
-        inverted = ImageOps.invert(gray)
 
-        images_to_try = [gray, enhanced, sharpened, auto, inverted]
-        extracted_lines = []
+        images_to_try = [gray, enhanced, sharpened, auto]
 
         for im in images_to_try:
-            for config in ["--psm 3", "--psm 6", "--psm 4", "--psm 11", "--psm 1", ""]:
+            for psm in ["--psm 3", "--psm 6", "--psm 4", "--psm 11", ""]:
                 try:
-                    txt = pytesseract.image_to_string(im, config=config).strip()
+                    txt = pytesseract.image_to_string(im, config=psm).strip()
                     if txt:
                         for line in txt.split("\n"):
                             line_clean = line.strip()
@@ -59,13 +78,12 @@ def _ocr_image_preprocess(img):
                 except Exception:
                     pass
 
-        # Rotation checks for sideways/upside-down camera photo scans
+        # 3. Rotation passes for camera photo orientation issues
         if len(extracted_lines) < 3:
             for angle in [90, 180, 270]:
                 try:
                     rot = img.rotate(angle, expand=True)
-                    rot_gray = rot.convert("L")
-                    txt = pytesseract.image_to_string(rot_gray, config="--psm 3").strip()
+                    txt = pytesseract.image_to_string(rot.convert("L"), config="--psm 3").strip()
                     if txt:
                         for line in txt.split("\n"):
                             line_clean = line.strip()
@@ -75,15 +93,15 @@ def _ocr_image_preprocess(img):
                     pass
 
         return "\n".join(extracted_lines).strip()
-    except Exception as e:
-        print("Image Preprocessing OCR Exception:", e)
+    except Exception as master_ocr_err:
+        print("Image Preprocessing OCR Exception:", master_ocr_err)
         return ""
 
 
 async def analyze_report(file):
     """
     Extracts text from uploaded image (via multi-pass OCR) or PDF document (via PyPDF/OCR),
-    and sends the exact extracted OCR text to Vaidya AI for radiologist analysis.
+    and sends the exact extracted OCR text to Vaidya AI for layman report explanation.
     """
     try:
         content = await file.read()
@@ -124,7 +142,7 @@ async def analyze_report(file):
                 except Exception as pdf_img_err:
                     print("PDF Image OCR Exception:", pdf_img_err)
 
-        # Send exact OCR text to radiologist AI prompt
+        # Send exact OCR text to Vaidya AI prompt
         result = await analyze_medical_report(extracted_text, filename=file.filename or "")
 
         english_text = await generate_english_narration(result)
