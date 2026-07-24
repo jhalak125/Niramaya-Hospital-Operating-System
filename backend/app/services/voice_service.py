@@ -10,18 +10,20 @@ os.makedirs(AUDIO_DIR, exist_ok=True)
 
 
 def generate_voice(text, lang):
+    try:
+        filename = f"{uuid.uuid4()}.mp3"
+        filepath = os.path.join(AUDIO_DIR, filename)
 
-    filename = f"{uuid.uuid4()}.mp3"
+        tts = gTTS(
+            text=text,
+            lang=lang,
+            slow=False
+        )
 
-    filepath = os.path.join(AUDIO_DIR, filename)
+        tts.save(filepath)
 
-    tts = gTTS(
-        text=text,
-        lang=lang,
-        slow=False
-    )
-
-    tts.save(filepath)
-
-    base = settings.BASE_URL.rstrip("/")
-    return f"{base}/audio/{filename}"
+        base = settings.BASE_URL.rstrip("/")
+        return f"{base}/audio/{filename}"
+    except Exception as e:
+        print("gTTS Voice Generation Exception:", e)
+        return ""
