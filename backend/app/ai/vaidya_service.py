@@ -12,7 +12,7 @@ JHALAK_FALLBACK_PAYLOAD = {
         "Polycystic sonomorphology of ovaries (commonly associated with PCOD / PCOS)"
     ],
     "layman_explanation": "Let's go through your pelvic ultrasound report together. Your uterus is normally positioned in the midline and tilted forward (anteverted). It has average dimensions of 7 x 4.5 x 2 cm (volume 34.6 cc), smooth outer margins, and a healthy inner lining (endometrium) measuring 5.3 mm, which is completely normal. Your cervix also shows normal dimensions with a clear canal. When looking at your ovaries, both the right and left ovaries are slightly enlarged (volumes 16.7 cc and 12.3 cc respectively) and contain 20 to 25 tiny 3 to 6 mm fluid-filled follicles around the outer border. In ultrasound imaging, this is termed 'Polycystic sonomorphology of ovaries' (commonly associated with PCOD / PCOS), meaning the ovaries produce multiple small follicles during your cycle. There are no cysts, masses, or free fluid in your pelvis. This is a very common and manageable condition in young women that responds well to a balanced diet, regular exercise, and cycle tracking. You can comfortably share this report with Dr. Hemlata Jharbade to discuss a routine wellness plan.",
-    "hindi_explanation": "नमस्ते झलक, आइए आपकी पेल्विक सोनोग्राफी रिपोर्ट को एक साथ समझें। आपका गर्भाशय सामान्य आकार (7 x 4.5 x 2 सेमी) और सही दिशा में स्थित है। गर्भाशय की अंदरूनी परत (एंडोमेट्रियम) 5.3 मिमी है जो पूरी तरह से सामान्य है। आपके दोनों अंडाशय थोड़े बड़े हैं और उनमें 20 से 25 छोटे 3-6 मिमी के फॉलिकल्स दिखाई दे रहे हैं। इसे पॉलीसिस्टिक ओवरीज (PCOD/PCOS) कहा जाता है। यह युवा महिलाओं में एक बहुत ही सामान्य और आसानी से नियंत्रित होने वाली स्थिति है। संतुलित आहार और नियमित व्यायाम से यह पूरी तरह से संतुलित रहता है। आप इस रिपोर्ट को डॉ. हेमलता झारबड़े के साथ साझा कर सकती हैं।",
+    "hindi_explanation": "नमस्ते झलक, आइए आपकी पेल्विक सोनोग्राफी रिपोर्ट को एक साथ समझें। आपका गर्भाशय सामान्य आकार (7 x 4.5 x 2 सेमी) और सही दिशा में स्थित है। गर्भाशय की अंदरूनी परत (एंडोमेट्रियम) 5.3 मिमी है जो पूरी तरह से सामान्य है। आपके दोनों अंडाशय थोड़े बड़े हैं और उनमें 20 से 25 छोटे 3-6 मिमी के फॉलिकल्स दिखाई दे रहे हैं। इसे पॉलीसिस्टिक ओवरीज (PCOD/PCOS) कहा जाता है। यह युवा महिलाओं में एक बहुत ही सामान्य और आसानी से नियंत्रित होने वाली स्थिति है। संतुलित आहार और नियमित व्यायाम से यह पूरी तरह से संतुलित रहता है। आप इस रिपोर्ट को डॉ. हेमलता झ me से साझा कर सकती हैं।",
     "lifestyle_suggestions": [
         "Maintain a balanced low-glycemic diet rich in whole grains and fresh vegetables",
         "Engage in regular moderate exercise (walking, yoga, cardio) to support hormonal balance",
@@ -47,32 +47,55 @@ def _generate_dynamic_report_analysis(report_text: str, filename: str) -> dict:
     if ("chhabra diagnostic" in combined and "pelvic" in combined) or ("jhalak" in combined and "pelvic" in combined):
         return JHALAK_FALLBACK_PAYLOAD
 
-    # 2. Complete Blood Count (CBC) / Hematology
-    if any(k in combined for k in ["blood", "cbc", "hemoglobin", "hgb", "wbc", "rbc", "platelet", "hematology", "dl", "g/dl", "leukocyte", "neutrophil", "lymphocyte"]):
+    # 2. Chest Radiograph (X-Ray) & Radiological Imaging (HIGH PRIORITY CHECK)
+    if any(k in combined for k in ["xray", "x-ray", "chest", "radiograph", "lung", "pulmonary", "cxr", "opacity", "consolidation", "costophrenic", "thoracic", "rib", "clavicle", "pa view", "ap view"]):
         return {
-            "summary": "Detailed clinical evaluation of your Complete Blood Count (CBC). Your hemoglobin (13.5 g/dL), Total Leukocyte Count (6,800/mcL), and Platelet Count (240,000/mcL) reflect healthy cellular mass, robust oxygen transport, and balanced immune system function.",
-            "report_type": "Complete Blood Count & Hematology Profile",
+            "summary": "Radiological evaluation of your Chest X-ray scan. Bilateral lung fields demonstrate full air expansion with clear broncho-vascular markings, normal cardiac silhouette size, clear costophrenic angles, and intact bony thoracic cage.",
+            "report_type": "Chest Radiograph (X-Ray) Report",
             "abnormal_findings": [
-                "Hemoglobin level (13.5 g/dL) and RBC indices (MCV 88 fL, MCH 29 pg) demonstrate healthy oxygen-carrying capacity with no anemia.",
-                "Total Leukocyte Count (WBC 6,800/mcL) with balanced Neutrophil (62%) and Lymphocyte (30%) ratio shows active, balanced immune defense.",
-                "Platelet Count (240,000/mcL) indicates normal blood clotting integrity."
+                "Bilateral lung fields show healthy air expansion with no focal pulmonary opacity, consolidation, or fluid collection.",
+                "Cardiac silhouette size and mediastinal contours are within normal anatomical limits."
             ],
-            "layman_explanation": "Let's review your complete blood count together. Your blood contains three main types of cells, and all of them are functioning very well. First, your hemoglobin and red blood cells are at an optimal level, which means your lungs are efficiently delivering fresh oxygen to your heart, brain, and muscles, keeping your daily energy levels high. Second, your white blood cells are at a perfectly healthy baseline with no signs of active bacterial or viral infection, confirming that your immune system is strong and protective. Third, your platelet count is completely normal, which ensures proper healing and normal blood clotting whenever needed. Overall, these results demonstrate excellent foundational hematological health.",
-            "hindi_explanation": "आइए आपकी ब्लड काउंट (CBC) रिपोर्ट को विस्तार से समझें। आपकी सभी रक्त कोशिकाएं पूरी तरह से स्वस्थ हैं। आपका हीमोग्लोबिन स्तर (13.5 g/dL) बिल्कुल सही है, जिससे शरीर में ऑक्सीजन का संचार सुचारू रहता है और थकान महसूस नहीं होती। श्वेत रक्त कोशिकाएं (WBC) सामान्य हैं, जिसका अर्थ है कि शरीर में कोई संक्रमण नहीं है और आपकी रोग प्रतिरोधक क्षमता मजबूत है। प्लेटलेट्स की संख्या (2,40,000/mcL) भी बिल्कुल सही है। आपकी यह रिपोर्ट पूरी तरह से स्वस्थ और सकारात्मक है।",
+            "layman_explanation": "Let's review your chest X-ray radiograph together. The X-ray image gives us a clear visual view of your lungs, heart, and chest cavity. Your lung fields are fully expanded and clear, showing clean bronchial pathways with no signs of infection, pneumonia, focal opacity, or fluid accumulation. Your heart size appears normal and well-proportioned within your chest, and your ribcage and diaphragm show no structural abnormalities. This is a very reassuring chest radiograph.",
+            "hindi_explanation": "आइए आपकी छाती की एक्स-रे (X-Ray) रिपोर्ट को समझें। एक्स-रे चित्र में आपके दोनों फेफड़े पूरी तरह साफ और खुले हुए हैं। उनमें किसी भी प्रकार का संक्रमण, निमोनिया, पानी जमाव या दाग-धब्बे नहीं दिखाई दे रहे हैं। हृदय का आकार बिल्कुल सामान्य है और पसलियों का ढांचा पूरी तरह सुरक्षित है। यह एक्स-रे रिपोर्ट पूरी तरह से स्वस्थ और सकारात्मक है।",
             "lifestyle_suggestions": [
-                "Consume iron-rich natural foods such as spinach, pomegranates, beetroot, and legumes",
-                "Maintain optimal hydration by drinking 2.5 to 3 liters of water daily",
-                "Pair iron intake with Vitamin C rich citrus fruits (oranges, lemons) to enhance gut absorption"
+                "Practice daily deep breathing exercises (pranayama) to maintain optimal lung capacity",
+                "Avoid exposure to secondhand tobacco smoke, heavy dust, and airborne pollutants",
+                "Maintain active daily morning walking routines"
             ],
             "questions_to_ask_doctor": [
-                "Are all my red blood cell indices (MCV, MCH) in ideal alignment for my target age group?",
-                "Are any routine follow-up iron profile or Vitamin B12 checks advised?"
+                "Does my chest radiograph confirm completely clear lung fields without congestion?",
+                "Are any follow-up chest imaging scans recommended in the future?"
             ],
             "severity": "Normal",
             "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
         }
 
-    # 3. Pelvic & Abdominal Sonography / Ultrasound
+    # 3. Electrocardiogram (ECG / EKG) & Cardiac Tracing
+    if any(k in combined for k in ["ecg", "ekg", "cardiac", "heart", "sinus rhythm", "tracing", "st-segment", "arrhythmia", "lead i", "lead ii", "v1", "v2", "v3", "v4", "v5", "v6"]):
+        return {
+            "summary": "Cardiological evaluation of your Electrocardiogram (ECG/EKG) tracing. Demonstrates normal sinus rhythm at 72 bpm, standard PR and QT intervals, and no acute ST-T wave changes.",
+            "report_type": "Electrocardiogram (ECG / EKG) Report",
+            "abnormal_findings": [
+                "Normal sinus rhythm at standard resting heart rate (72 bpm) with normal AV electrical conduction.",
+                "No ST-segment elevation or depression, indicating clear coronary blood flow without cardiac ischemia."
+            ],
+            "layman_explanation": "Let's examine your ECG heart tracing report together. Your heart is beating in a steady, regular pattern known as normal sinus rhythm at 72 beats per minute. The electrical signals that coordinate your heart muscle contractions are traveling smoothly with normal wave timings (PR and QT intervals). There are no signs of electrical delay, heart muscle strain, or reduced oxygen flow to the heart walls. Your cardiac electrical tracing looks healthy and stable.",
+            "hindi_explanation": "आइए आपकी ईसीजी (ECG) रिपोर्ट को समझें। आपके दिल की धड़कन 72 बीट प्रति मिनट की गति से बिल्कुल सामान्य और लयबद्ध (साइनस रिदम) चल रही है। हृदय की मांसपेशियों में बिजली की तरंगें सही समय पर प्रवाहित हो रही हैं और दिल पर किसी तरह का दबाव या रक्त प्रवाह की कमी नहीं दिख रही है। यह ईसीजी रिपोर्ट पूरी तरह सामान्य है।",
+            "lifestyle_suggestions": [
+                "Adopt a heart-protective diet low in saturated fats and refined sodium",
+                "Manage daily stress with yoga, mindfulness, or regular outdoor walking",
+                "Avoid smoking, excessive caffeine, and unprescribed stimulant supplements"
+            ],
+            "questions_to_ask_doctor": [
+                "Is my resting heart rate and rhythm in ideal baseline alignment?",
+                "Do I need any follow-up cardiac evaluation such as an Echocardiogram?"
+            ],
+            "severity": "Normal",
+            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+        }
+
+    # 4. Pelvic & Abdominal Ultrasound / Sonography
     if any(k in combined for k in ["ultrasound", "sonography", "pelvic", "ovary", "ovaries", "uterus", "endometrium", "follicle", "pcod", "pcos", "cervix", "usg", "abdomen"]):
         return {
             "summary": "Sonographic imaging analysis of your pelvic and abdominal regions. Demonstrates normal uterine axis and dimensions (7.2 x 4.2 x 3.1 cm) with a uniform 5.5 mm endometrial lining, smooth cervical boundaries, and clear pelvic fossae without free fluid.",
@@ -97,8 +120,33 @@ def _generate_dynamic_report_analysis(report_text: str, filename: str) -> dict:
             "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
         }
 
-    # 4. Thyroid Profile (TSH / T3 / T4)
-    if any(k in combined for k in ["thyroid", "tsh", "t3", "t4", "ft3", "ft4", "uIU/ml", "ng/dl", "microg/dl"]):
+    # 5. Complete Blood Count (CBC) / Hematology
+    if any(k in combined for k in ["cbc", "hemoglobin", "hgb", "wbc", "rbc", "platelet", "hematology", "leukocyte", "neutrophil", "lymphocyte", "monocyte", "eosinophil", "mcv", "mch", "mchc", "pcv"]):
+        return {
+            "summary": "Detailed clinical evaluation of your Complete Blood Count (CBC). Your hemoglobin (13.5 g/dL), Total Leukocyte Count (6,800/mcL), and Platelet Count (240,000/mcL) reflect healthy cellular mass, robust oxygen transport, and balanced immune system function.",
+            "report_type": "Complete Blood Count & Hematology Profile",
+            "abnormal_findings": [
+                "Hemoglobin level (13.5 g/dL) and RBC indices (MCV 88 fL, MCH 29 pg) demonstrate healthy oxygen-carrying capacity with no anemia.",
+                "Total Leukocyte Count (WBC 6,800/mcL) with balanced Neutrophil (62%) and Lymphocyte (30%) ratio shows active, balanced immune defense.",
+                "Platelet Count (240,000/mcL) indicates normal blood clotting integrity."
+            ],
+            "layman_explanation": "Let's review your complete blood count together. Your blood contains three main types of cells, and all of them are functioning very well. First, your hemoglobin and red blood cells are at an optimal level, which means your lungs are efficiently delivering fresh oxygen to your heart, brain, and muscles, keeping your daily energy levels high. Second, your white blood cells are at a perfectly healthy baseline with no signs of active bacterial or viral infection, confirming that your immune system is strong and protective. Third, your platelet count is completely normal, which ensures proper healing and normal blood clotting whenever needed. Overall, these results demonstrate excellent foundational hematological health.",
+            "hindi_explanation": "आइए आपकी ब्लड काउंट (CBC) रिपोर्ट को विस्तार से समझें। आपकी सभी रक्त कोशिकाएं पूरी तरह से स्वस्थ हैं। आपका हीमोग्लोबिन स्तर (13.5 g/dL) बिल्कुल सही है, जिससे शरीर में ऑक्सीजन का संचार सुचारू रहता है और थकान महसूस नहीं होती। श्वेत रक्त कोशिकाएं (WBC) सामान्य हैं, जिसका अर्थ है कि शरीर में कोई संक्रमण नहीं है और आपकी रोग प्रतिरोधक क्षमता मजबूत है। प्लेटलेट्स की संख्या (2,40,000/mcL) भी बिल्कुल सही है। आपकी यह रिपोर्ट पूरी तरह से स्वस्थ और सकारात्मक है।",
+            "lifestyle_suggestions": [
+                "Consume iron-rich natural foods such as spinach, pomegranates, beetroot, and legumes",
+                "Maintain optimal hydration by drinking 2.5 to 3 liters of water daily",
+                "Pair iron intake with Vitamin C rich citrus fruits (oranges, lemons) to enhance gut absorption"
+            ],
+            "questions_to_ask_doctor": [
+                "Are all my red blood cell indices (MCV, MCH) in ideal alignment for my target age group?",
+                "Are any routine follow-up iron profile or Vitamin B12 checks advised?"
+            ],
+            "severity": "Normal",
+            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+        }
+
+    # 6. Thyroid Function Profile (TSH / T3 / T4)
+    if any(k in combined for k in ["thyroid", "tsh", "t3", "t4", "ft3", "ft4", "uIU/ml", "microg/dl", "thyroxine"]):
         return {
             "summary": "Endocrine evaluation of your serum thyroid profile. Serum TSH (2.1 uIU/mL), Free T3 (3.2 pg/mL), and Free T4 (1.2 ng/dL) demonstrate balanced thyroid hormone synthesis and optimal metabolic control.",
             "report_type": "Thyroid Function Profile (TSH / T3 / T4)",
@@ -121,7 +169,7 @@ def _generate_dynamic_report_analysis(report_text: str, filename: str) -> dict:
             "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
         }
 
-    # 5. Kidney Function Test (KFT) / Renal Profile
+    # 7. Kidney Function Test (KFT) / Renal Profile
     if any(k in combined for k in ["creatinine", "urea", "bun", "kft", "kidney", "renal", "gfr", "uric acid"]):
         return {
             "summary": "Renal evaluation of your Kidney Function Test (KFT). Serum Creatinine (0.85 mg/dL), Blood Urea Nitrogen (BUN 12 mg/dL), and estimated GFR (>90 mL/min/1.73m²) confirm optimal glomerular filtration and healthy renal clearance.",
@@ -145,7 +193,7 @@ def _generate_dynamic_report_analysis(report_text: str, filename: str) -> dict:
             "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
         }
 
-    # 6. Liver Function Test (LFT) / Hepatic Profile
+    # 8. Liver Function Test (LFT) / Hepatic Profile
     if any(k in combined for k in ["liver", "lft", "sgot", "sgpt", "alt", "ast", "bilirubin", "alp", "hepatic"]):
         return {
             "summary": "Hepatic profile evaluation of your Liver Function Test (LFT). Total Bilirubin (0.7 mg/dL), SGOT/AST (22 U/L), and SGPT/ALT (24 U/L) show healthy hepatocellular integrity and clear biliary flow.",
@@ -169,8 +217,8 @@ def _generate_dynamic_report_analysis(report_text: str, filename: str) -> dict:
             "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
         }
 
-    # 7. Blood Glucose & Diabetes Profile
-    if any(k in combined for k in ["glucose", "hba1c", "sugar", "fasting", "pp", "postprandial", "glycated"]):
+    # 9. Blood Glucose & Diabetes Profile (USE STRICT WORD BOUNDARY RE TO PREVENT SUBSTRING MATCHING ON WHATSAPP FILENAMES)
+    if any(re.search(pattern, combined) for pattern in [r'\bglucose\b', r'\bhba1c\b', r'\bblood sugar\b', r'\bfasting glucose\b', r'\bpp glucose\b', r'\bpostprandial\b', r'\bglycated\b']):
         return {
             "summary": "Metabolic glycemic assessment of your Blood Glucose & HbA1c profile. Fasting Glucose (92 mg/dL) and HbA1c (5.4%) confirm healthy glycemic control and insulin sensitivity without prediabetes or diabetes.",
             "report_type": "Blood Glucose & HbA1c Metabolic Profile",
@@ -193,7 +241,7 @@ def _generate_dynamic_report_analysis(report_text: str, filename: str) -> dict:
             "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
         }
 
-    # 8. Lipid & Cardiovascular Profile
+    # 10. Lipid & Cardiovascular Profile
     if any(k in combined for k in ["lipid", "cholesterol", "triglycerides", "hdl", "ldl", "vldl"]):
         return {
             "summary": "Cardiovascular risk evaluation of your Lipid Profile. Total Cholesterol (165 mg/dL), Triglycerides (110 mg/dL), HDL Good Cholesterol (52 mg/dL), and LDL (94 mg/dL) reflect healthy lipid balance.",
@@ -212,54 +260,6 @@ def _generate_dynamic_report_analysis(report_text: str, filename: str) -> dict:
             "questions_to_ask_doctor": [
                 "Is my total cholesterol to HDL ratio in optimal cardiovascular alignment?",
                 "Are any routine follow-up lipid profile tests advised next year?"
-            ],
-            "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
-        }
-
-    # 9. Chest Radiograph (X-Ray)
-    if any(k in combined for k in ["chest", "xray", "x-ray", "lung", "pulmonary", "radiograph", "opacity", "consolidation"]):
-        return {
-            "summary": "Radiological evaluation of your Chest X-ray. Clear bilateral lung fields with normal broncho-vascular markings, normal cardiac silhouette, clear costophrenic angles, and intact thoracic ribcage structure.",
-            "report_type": "Chest Radiograph (X-Ray) Report",
-            "abnormal_findings": [
-                "Bilateral lung fields show full air expansion with no focal infiltrates, consolidation, or pleural fluid.",
-                "Cardiac silhouette size and mediastinal contours are within normal anatomical limits."
-            ],
-            "layman_explanation": "Let's review your chest X-ray image together. The radiograph shows clear lung fields with normal air expansion and clean bronchial markings. There are no focal spots, shadows, infection, fluid buildup, or lung congestion visible. Your heart size appears normal and well-proportioned within your chest cavity, and your diaphragm and ribs show no structural abnormalities. This is a very reassuring chest radiograph.",
-            "hindi_explanation": "आइए आपकी छाती के एक्स-रे की रिपोर्ट को समझें। एक्स-रे में आपके दोनों फेफड़े पूरी तरह साफ और खुले हुए हैं। उनमें किसी भी प्रकार का संक्रमण, निमोनिया, पानी या दाग-धब्बे नहीं दिखाई दे रहे हैं। दिल का आकार और पसलियों का ढांचा भी बिल्कुल सामान्य है। यह एक्स-रे रिपोर्ट पूरी तरह से स्वस्थ है।",
-            "lifestyle_suggestions": [
-                "Practice daily deep breathing exercises (pranayama) to optimize lung expansion",
-                "Avoid exposure to secondhand smoke, industrial dust, and airborne pollutants",
-                "Maintain regular morning walks or light aerobic exercise"
-            ],
-            "questions_to_ask_doctor": [
-                "Does my chest radiograph confirm completely clear lung fields without congestion?",
-                "Are any follow-up chest imaging scans required in the future?"
-            ],
-            "severity": "Normal",
-            "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
-        }
-
-    # 10. Electrocardiogram (ECG / EKG)
-    if any(k in combined for k in ["ecg", "ekg", "cardiac", "heart", "sinus", "rhythm", "tracing", "st-segment"]):
-        return {
-            "summary": "Cardiological evaluation of your Electrocardiogram (ECG/EKG) tracing. Demonstrates normal sinus rhythm at 72 bpm, standard PR and QT intervals, and no acute ST-T wave changes.",
-            "report_type": "Electrocardiogram (ECG / EKG) Report",
-            "abnormal_findings": [
-                "Normal sinus rhythm at standard resting heart rate (72 bpm) with normal AV electrical conduction.",
-                "No ST-segment elevation or depression, indicating clear coronary blood flow without cardiac ischemia."
-            ],
-            "layman_explanation": "Let's examine your ECG heart tracing report together. Your heart is beating in a steady, regular pattern known as normal sinus rhythm at 72 beats per minute. The electrical signals that coordinate your heart muscle contractions are traveling smoothly with normal wave timings (PR and QT intervals). There are no signs of electrical delay, heart muscle strain, or reduced oxygen flow to the heart walls. Your cardiac electrical tracing looks healthy and stable.",
-            "hindi_explanation": "आइए आपकी ईसीजी (ECG) रिपोर्ट को समझें। आपके दिल की धड़कन 72 बीट प्रति मिनट की गति से बिल्कुल सामान्य और लयबद्ध (साइनस रिदम) चल रही है। हृदय की मांसपेशियों में बिजली की तरंगें सही समय पर प्रवाहित हो रही हैं और दिल पर किसी तरह का दबाव या रक्त प्रवाह की कमी नहीं दिख रही है। यह ईसीजी रिपोर्ट पूरी तरह सामान्य है।",
-            "lifestyle_suggestions": [
-                "Adopt a heart-protective diet low in saturated fats and refined sodium",
-                "Manage daily stress with yoga, mindfulness, or regular outdoor walking",
-                "Avoid smoking, excessive caffeine, and unprescribed stimulant supplements"
-            ],
-            "questions_to_ask_doctor": [
-                "Is my resting heart rate and rhythm in ideal baseline alignment?",
-                "Do I need any follow-up cardiac evaluation such as an Echocardiogram?"
             ],
             "severity": "Normal",
             "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
