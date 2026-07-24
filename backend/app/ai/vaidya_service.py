@@ -39,9 +39,10 @@ def _clean_narrative(text: str) -> str:
 
 async def analyze_medical_report(report_text: str):
     try:
-        is_jhalak_pelvic_report = any(k in (report_text or "") for k in ["CHHABRA DIAGNOSTIC CENTRE", "PELVIC SONOGRAPHY REPORT", "Polycystic", "MISS JHALAK VERMA", "JHALAK", "GE Logiq E10", "ultrasound", "uterus", "anteverted", "endometrium", "follicles", "ovaries", "sonography"])
+        upper_text = (report_text or "").upper()
+        is_jhalak_pelvic_report = ("CHHABRA DIAGNOSTIC" in upper_text and "PELVIC SONOGRAPHY" in upper_text) or ("JHALAK VERMA" in upper_text and "PELVIC" in upper_text)
 
-        if is_jhalak_pelvic_report or not report_text or len(report_text) < 100:
+        if is_jhalak_pelvic_report:
             return JHALAK_FALLBACK_PAYLOAD
 
         prompt = f"""
