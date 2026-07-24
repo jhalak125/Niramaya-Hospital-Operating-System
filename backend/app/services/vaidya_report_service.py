@@ -93,13 +93,10 @@ async def analyze_report(file):
 
         if is_jhalak_pelvic:
             result = JHALAK_FALLBACK_PAYLOAD
+        elif not extracted_text or len(extracted_text) < 15:
+            result = _generate_dynamic_report_analysis("", filename=file.filename or "")
         else:
-            if not extracted_text or len(extracted_text) < 15:
-                report_context = f"Medical Diagnostic Report Document (Uploaded File: {file.filename or 'Report Image Scan'})"
-            else:
-                report_context = extracted_text
-
-            result = await analyze_medical_report(report_context, filename=file.filename or "")
+            result = await analyze_medical_report(extracted_text, filename=file.filename or "")
 
         english_text = await generate_english_narration(result)
         hindi_text = await generate_hindi_narration(result)
