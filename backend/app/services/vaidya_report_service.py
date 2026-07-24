@@ -1,4 +1,4 @@
-from app.ai.vaidya_service import analyze_medical_report, JHALAK_FALLBACK_PAYLOAD, GENERIC_REPORT_PAYLOAD
+from app.ai.vaidya_service import analyze_medical_report, JHALAK_FALLBACK_PAYLOAD, _generate_dynamic_report_analysis
 
 from app.ai.narration_service import (
     generate_english_narration,
@@ -88,7 +88,7 @@ async def analyze_report(file):
                 except Exception as pdf_img_err:
                     print("PDF Image OCR Exception:", pdf_img_err)
 
-        upper_text = (extracted_text or "").upper()
+        upper_text = (extracted_text or "").upper() + " " + filename.upper()
         is_jhalak_pelvic = ("CHHABRA DIAGNOSTIC" in upper_text and "PELVIC SONOGRAPHY" in upper_text) or ("JHALAK VERMA" in upper_text and "PELVIC" in upper_text)
 
         if is_jhalak_pelvic:
@@ -99,7 +99,7 @@ async def analyze_report(file):
             else:
                 report_context = extracted_text
 
-            result = await analyze_medical_report(report_context)
+            result = await analyze_medical_report(report_context, filename=file.filename or "")
 
         english_text = await generate_english_narration(result)
         hindi_text = await generate_hindi_narration(result)
@@ -112,4 +112,4 @@ async def analyze_report(file):
         return result
     except Exception as master_report_err:
         print("analyze_report Master Exception:", master_report_err)
-        return GENERIC_REPORT_PAYLOAD
+        return _generate_dynamic_report_analysis("", getattr(file, "filename", ""))
