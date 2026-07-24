@@ -8,21 +8,25 @@ from app.ai.narration_service import (
 import io
 from PIL import Image
 from pypdf import PdfReader
-import pytesseract
-
 from app.services.voice_service import generate_voice
 from PIL import ImageEnhance
 import shutil
 
-tesseract_bin = shutil.which("tesseract") or "/usr/bin/tesseract" or "/usr/local/bin/tesseract" or "/opt/homebrew/bin/tesseract"
-if tesseract_bin:
-    try:
-        pytesseract.pytesseract.tesseract_cmd = tesseract_bin
-    except Exception:
-        pass
+try:
+    import pytesseract
+    tesseract_bin = shutil.which("tesseract") or "/usr/bin/tesseract" or "/usr/local/bin/tesseract" or "/opt/homebrew/bin/tesseract"
+    if tesseract_bin:
+        try:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_bin
+        except Exception:
+            pass
+except ImportError:
+    pytesseract = None
 
 
 def _ocr_image_preprocess(img):
+    if not pytesseract:
+        return ""
     try:
         if img.mode not in ("L", "RGB"):
             img = img.convert("RGB")

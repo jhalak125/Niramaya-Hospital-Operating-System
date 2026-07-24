@@ -29,3 +29,6 @@ groq
 gTTS
 Pillow
 pypdf
+pytesseract
+requests
+openai
