@@ -42,12 +42,30 @@ export const SignUpPage = () => {
       return;
     }
 
+    // 1. Email format validation
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailPattern.test(formData.email.trim())) {
+      setError('Please enter a valid email address (e.g., user@example.com).');
+      return;
+    }
+
+    // 2. Phone number 10-digit validation
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      setError('Phone number must contain exactly 10 digits.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setSuccessMsg('');
 
     try {
-      await register(formData);
+      await register({
+        ...formData,
+        email: formData.email.trim().toLowerCase(),
+        phone: phoneDigits,
+      });
       setSuccessMsg('Account registered successfully! Redirecting to sign in...');
       setTimeout(() => {
         navigate('/signin', { state: { message: 'Registration successful! Please sign in.' } });
@@ -155,7 +173,7 @@ export const SignUpPage = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Phone Number
+                Phone Number (10 digits)
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -164,10 +182,15 @@ export const SignUpPage = () => {
                 <input
                   type="tel"
                   required
+                  maxLength={10}
                   name="phone"
                   value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+91 98765 43210"
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setFormData({ ...formData, phone: digits });
+                    setError('');
+                  }}
+                  placeholder="9876543210"
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
                 />
               </div>

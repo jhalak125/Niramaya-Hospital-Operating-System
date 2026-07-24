@@ -207,8 +207,37 @@ export const AdminDashboard = () => {
 
   const handleEditPatientSubmit = async (e) => {
     e.preventDefault();
+
+    if (patientForm.email) {
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailPattern.test(patientForm.email.trim())) {
+        alert('Please enter a valid email address (e.g., user@example.com).');
+        return;
+      }
+    }
+
+    if (patientForm.phone) {
+      const phoneDigits = patientForm.phone.replace(/\D/g, '');
+      if (phoneDigits.length !== 10) {
+        alert('Phone number must contain exactly 10 digits.');
+        return;
+      }
+    }
+
+    if (patientForm.emergency_contact) {
+      const emDigits = patientForm.emergency_contact.replace(/\D/g, '');
+      if (emDigits.length !== 10) {
+        alert('Emergency contact number must contain exactly 10 digits.');
+        return;
+      }
+    }
+
     try {
-      await patientService.updatePatient(editingPatientId, patientForm);
+      await patientService.updatePatient(editingPatientId, {
+        ...patientForm,
+        phone: patientForm.phone ? patientForm.phone.replace(/\D/g, '') : '',
+        emergency_contact: patientForm.emergency_contact ? patientForm.emergency_contact.replace(/\D/g, '') : '',
+      });
       setShowEditPatientModal(false);
       setEditingPatientId(null);
       fetchAdminData();
