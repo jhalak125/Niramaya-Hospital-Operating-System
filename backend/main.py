@@ -104,6 +104,7 @@ async def root():
 
     return {
         "message": "Welcome to MediFlow",
+        "version": "1.0.2-dynamic-category-fix",
         "database": "Connected",
         "collections": collections
     }
