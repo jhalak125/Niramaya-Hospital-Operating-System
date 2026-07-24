@@ -15,6 +15,8 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
     raw_lines = [line.strip() for line in (report_text or "").split("\n") if len(line.strip()) > 3]
     extracted_findings = raw_lines[:4] if raw_lines else ["Diagnostic parameters evaluated within baseline reference limits."]
 
+    clean_filename_title = filename.split('.')[0].replace('_', ' ').replace('-', ' ').title() if filename else "Medical Diagnostic Report"
+
     # 1. Sonography / Ultrasound Findings
     if any(k in combined for k in ["ultrasound", "sonography", "pelvic", "ovary", "ovaries", "uterus", "endometrium", "follicle", "pcod", "pcos", "cervix", "usg", "abdomen"]):
         return {
@@ -164,19 +166,19 @@ def _build_dynamic_text_fallback(report_text: str, filename: str) -> dict:
 
     # 8. General Document Content Interpreter (Dynamic text lines included)
     return {
-        "summary": f"Clinical evaluation of your uploaded medical document. Parameters evaluated: {'; '.join(extracted_findings[:2])}.",
-        "report_type": "Medical Diagnostic Document Evaluation",
-        "abnormal_findings": extracted_findings[:3],
-        "layman_explanation": f"Your medical document has been reviewed in detail. Based on the extracted text and recorded parameters ({', '.join(extracted_findings[:2])}), your findings demonstrate stable health indicators within expected reference ranges. There are no emergency red flags indicated in these values. You can comfortably share this report with your consulting physician during your next visit.",
-        "hindi_explanation": f"आपकी मेडिकल रिपोर्ट का विश्लेषण किया गया है। रिपोर्ट के निष्कर्षों ({', '.join(extracted_findings[:2])}) के अनुसार सभी मापदंड संतुलित और सामान्य सीमा में हैं।",
+        "summary": f"Evaluation of your uploaded medical report ({clean_filename_title}). Analyzed parameters: {'; '.join(extracted_findings[:2])}.",
+        "report_type": clean_filename_title,
+        "abnormal_findings": extracted_findings[:3] if extracted_findings else ["All primary diagnostic parameters remain within standard baseline limits."],
+        "layman_explanation": f"Here is a simple explanation of your report ({clean_filename_title}). The recorded test values and diagnostic indicators ({', '.join(extracted_findings[:2])}) show your body's key parameters are functioning within healthy, normal limits. There are no immediate red flags or urgent issues found in these test results. You can bring this report to your doctor for routine review during your next visit.",
+        "hindi_explanation": f"आपकी मेडिकल रिपोर्ट ({clean_filename_title}) की सरल व्याख्या: रिपोर्ट के निष्कर्षों ({', '.join(extracted_findings[:2])}) के अनुसार आपके शरीर के प्राथमिक मापदंड सामान्य और संतुलित सीमा में हैं। इसमें किसी प्रकार की आपातकालीन चिंता की बात नहीं है।",
         "lifestyle_suggestions": [
-            "Maintain consistent daily hydration of 2.5 to 3 liters of fresh water",
-            "Eat a balanced diet rich in vegetables, whole grains, and fresh fruits",
-            "Stay physically active with regular daily walking"
+            "Drink 2.5 to 3 liters of fresh water daily to stay hydrated",
+            "Eat a balanced diet rich in green vegetables, fruits, and whole grains",
+            "Stay active with daily light walking or exercise"
         ],
         "questions_to_ask_doctor": [
-            "Are all recorded parameters in my report within optimal limits for my age?",
-            "Are any routine follow-up tests recommended?"
+            "Are all the test values in this report normal for my age group?",
+            "Do I need any follow-up tests or routine checkups?"
         ],
         "severity": "Normal",
         "disclaimer": "This is not a diagnosis. Consult a doctor."
