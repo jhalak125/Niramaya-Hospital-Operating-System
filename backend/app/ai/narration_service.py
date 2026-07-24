@@ -6,11 +6,8 @@ from app.ai.groq_service import client
 def _clean_narrative(text: str) -> str:
     if not text:
         return ""
-    # Strip robotic heading titles like "What was found:", "Is it serious:", "Lifestyle suggestions:", "Questions to ask your doctor:"
     cleaned = re.sub(r'^(What was found|Is it serious|Lifestyle suggestions|Questions to ask your doctor|Summary|Findings|Severity|Advice)\s*:?\s*', '', text, flags=re.MULTILINE | re.IGNORECASE)
-    # Strip any line consisting of a title ending with a colon
     cleaned = re.sub(r'^[A-Z][a-zA-Z\s]{1,35}:\s*$', '', cleaned, flags=re.MULTILINE)
-    # Strip bullet stars/dashes at line starts
     cleaned = re.sub(r'^\s*[\*\-\•]\s*', '', cleaned, flags=re.MULTILINE)
     lines = [line.strip() for line in cleaned.split('\n') if line.strip()]
     return '\n\n'.join(lines)
@@ -37,19 +34,21 @@ MANDATORY STYLE RULES:
 6. End with: "Please remember that this explanation is for educational purposes and is not a substitute for formal clinical diagnosis."
 """
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-        temperature=0.3
-    )
-
-    raw_text = response.choices[0].message.content
-    return _clean_narrative(raw_text)
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3
+        )
+        return _clean_narrative(response.choices[0].message.content)
+    except Exception as e:
+        print("English Narration Exception:", e)
+        return _clean_narrative(str(report.get("layman_explanation", ""))) if isinstance(report, dict) else "Please consult your doctor regarding your diagnostic report findings."
 
 
 async def generate_hindi_narration(report):
@@ -72,16 +71,18 @@ async def generate_hindi_narration(report):
 5. अंत में कहें: "ध्यान रखें कि यह जानकारी केवल आपकी समझ के लिए है। कृपया अपने डॉक्टर से परामर्श अवश्य लें।"
 """
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-        temperature=0.3
-    )
-
-    raw_text = response.choices[0].message.content
-    return _clean_narrative(raw_text)
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3
+        )
+        return _clean_narrative(response.choices[0].message.content)
+    except Exception as e:
+        print("Hindi Narration Exception:", e)
+        return _clean_narrative(str(report.get("hindi_explanation", ""))) if isinstance(report, dict) else "कृपया अपने डॉक्टर से अपनी रिपोर्ट के निष्कर्षों के बारे में परामर्श लें।"
