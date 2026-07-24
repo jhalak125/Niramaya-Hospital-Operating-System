@@ -24,44 +24,49 @@ except ImportError:
 
 
 def _ocr_image_preprocess(img):
+    """
+    High-precision multi-pass OCR image preprocessor.
+    Applies image scaling, contrast sharpening, autocontrast, binarization, and rotation.
+    """
     if not pytesseract:
         return ""
     try:
         if img.mode not in ("L", "RGB"):
             img = img.convert("RGB")
         w, h = img.size
-        if w < 2000:
-            scale = 2000.0 / w
+        if w < 2400:
+            scale = 2400.0 / w
             img = img.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
 
         gray = img.convert("L")
-        enhanced = ImageEnhance.Contrast(gray).enhance(3.0)
-        sharpened = ImageEnhance.Sharpness(enhanced).enhance(3.0)
+        enhanced = ImageEnhance.Contrast(gray).enhance(3.5)
+        sharpened = ImageEnhance.Sharpness(enhanced).enhance(3.5)
+        auto = ImageOps.autocontrast(gray)
         inverted = ImageOps.invert(gray)
 
-        images_to_try = [gray, enhanced, sharpened, inverted]
+        images_to_try = [gray, enhanced, sharpened, auto, inverted]
         extracted_lines = []
 
         for im in images_to_try:
-            for config in ["--psm 3", "--psm 6", "--psm 4", "--psm 11", ""]:
+            for config in ["--psm 3", "--psm 6", "--psm 4", "--psm 11", "--psm 1", ""]:
                 try:
                     txt = pytesseract.image_to_string(im, config=config).strip()
-                    if txt and len(txt) > 15:
+                    if txt:
                         for line in txt.split("\n"):
                             line_clean = line.strip()
-                            if line_clean and line_clean not in extracted_lines and len(line_clean) > 2:
+                            if line_clean and line_clean not in extracted_lines and len(line_clean) > 1:
                                 extracted_lines.append(line_clean)
                 except Exception:
                     pass
 
-        # Rotation checks for sideways camera photos
-        if not extracted_lines:
+        # Rotation checks for sideways/upside-down camera photo scans
+        if len(extracted_lines) < 3:
             for angle in [90, 180, 270]:
                 try:
                     rot = img.rotate(angle, expand=True)
                     rot_gray = rot.convert("L")
                     txt = pytesseract.image_to_string(rot_gray, config="--psm 3").strip()
-                    if txt and len(txt) > 15:
+                    if txt:
                         for line in txt.split("\n"):
                             line_clean = line.strip()
                             if line_clean and line_clean not in extracted_lines:
@@ -76,6 +81,10 @@ def _ocr_image_preprocess(img):
 
 
 async def analyze_report(file):
+    """
+    Extracts text from uploaded image (via multi-pass OCR) or PDF document (via PyPDF/OCR),
+    and sends the exact extracted text to Vaidya AI for analysis.
+    """
     try:
         content = await file.read()
         filename = (file.filename or "").lower()
@@ -83,7 +92,7 @@ async def analyze_report(file):
 
         extracted_text = ""
 
-        # Image OCR processing
+        # 1. Image OCR Processing (PNG, JPG, JPEG, WEBP)
         if any(ext in filename for ext in [".png", ".jpg", ".jpeg", ".webp"]) or content_type.startswith("image/"):
             try:
                 img = Image.open(io.BytesIO(content))
@@ -91,7 +100,7 @@ async def analyze_report(file):
             except Exception as img_err:
                 print("Image OCR Exception:", img_err)
 
-        # PDF Text Extraction
+        # 2. PDF Document Text Extraction (PyPDF + Embedded Image OCR Fallback)
         elif filename.endswith(".pdf") or content_type == "application/pdf":
             try:
                 reader = PdfReader(io.BytesIO(content))
@@ -115,6 +124,7 @@ async def analyze_report(file):
                 except Exception as pdf_img_err:
                     print("PDF Image OCR Exception:", pdf_img_err)
 
+        # Send exact OCR / PDF extracted text to Vaidya AI for analysis
         result = await analyze_medical_report(extracted_text, filename=file.filename or "")
 
         english_text = await generate_english_narration(result)
