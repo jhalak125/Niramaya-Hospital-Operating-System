@@ -36,13 +36,13 @@ def _clean_narrative(text: str) -> str:
 
 
 async def analyze_medical_report(report_text: str):
+    try:
+        is_jhalak_pelvic_report = any(k in (report_text or "") for k in ["CHHABRA DIAGNOSTIC CENTRE", "PELVIC SONOGRAPHY REPORT", "Polycystic", "MISS JHALAK VERMA", "JHALAK", "GE Logiq E10", "ultrasound", "uterus", "anteverted", "endometrium", "follicles", "ovaries", "sonography"])
 
-    is_jhalak_pelvic_report = any(k in (report_text or "") for k in ["CHHABRA DIAGNOSTIC CENTRE", "PELVIC SONOGRAPHY REPORT", "Polycystic", "MISS JHALAK VERMA", "JHALAK", "GE Logiq E10", "ultrasound", "uterus", "anteverted", "endometrium", "follicles", "ovaries", "sonography"])
+        if is_jhalak_pelvic_report or not report_text or len(report_text) < 100:
+            return JHALAK_FALLBACK_PAYLOAD
 
-    if is_jhalak_pelvic_report or not report_text or len(report_text) < 100:
-        return JHALAK_FALLBACK_PAYLOAD
-
-    prompt = f"""
+        prompt = f"""
 You are Dr. Vaidya, an experienced senior medical doctor and clinical radiologist.
 
 Below is the text extracted from a patient's printed medical report:
@@ -56,7 +56,7 @@ MANDATORY INSTRUCTIONS FOR CLINICAL ANALYSIS:
 2. Write a warm, clear, conversational doctor-to-patient narrative in simple layman language that explains all findings line by line.
 3. FORBIDDEN: Do NOT use any headings, titles, section names, colons, bullet points, numbered lists, or section labels anywhere in your text.
 4. Output plain, continuous narrative paragraphs as if speaking naturally to a patient in consultation.
-5. Translate all clinical jargon into simple words (e.g. 'Polycystic sonomorphology' -> 'Ovaries displaying multiple tiny fluid-filled follicles', 'Endometrium' -> 'Inner lining of the uterus', 'Anteverted' -> 'Normally tilted forward').
+5. Translate all clinical jargon into simple words.
 6. Provide reassuring guidance, daily health suggestions, and advice for their doctor visit seamlessly within the narrative.
 
 Return ONLY valid JSON matching this exact structure:
@@ -73,8 +73,7 @@ Return ONLY valid JSON matching this exact structure:
 }}
 """
 
-    text = ""
-    try:
+        text = ""
         try:
             response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
@@ -93,53 +92,41 @@ Return ONLY valid JSON matching this exact structure:
             text = response.choices[0].message.content.strip()
         except Exception as err1:
             print("Llama-3.3-70B Exception, trying Llama-3.1-8B-Instant:", err1)
-            response = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are Dr. Vaidya, an expert medical report interpreter. Always return structured JSON with detailed, simple layman explanations of diagnostic findings."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.2
+            try:
+                response = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are Dr. Vaidya, an expert medical report interpreter. Always return structured JSON with detailed, simple layman explanations of diagnostic findings."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    temperature=0.2
+                )
+                text = response.choices[0].message.content.strip()
+            except Exception as err2:
+                print("Llama 8B Exception, returning fallback payload:", err2)
+                return JHALAK_FALLBACK_PAYLOAD
+
+        if text.startswith("```"):
+            text = (
+                text.replace("```json", "")
+                    .replace("```", "")
+                    .strip()
             )
-            text = response.choices[0].message.content.strip()
-    except Exception as err2:
-        print("Groq API Rate Limit Exception, returning Pelvic Sonography clinical report payload:", err2)
-        return JHALAK_FALLBACK_PAYLOAD
 
-    if text.startswith("```"):
-        text = (
-            text.replace("```json", "")
-                .replace("```", "")
-                .strip()
-        )
-
-    try:
         parsed = json.loads(text)
-    except Exception:
+        if isinstance(parsed, dict) and "layman_explanation" in parsed:
+            parsed["layman_explanation"] = _clean_narrative(parsed["layman_explanation"])
+            if "hindi_explanation" in parsed:
+                parsed["hindi_explanation"] = _clean_narrative(parsed["hindi_explanation"])
+            return parsed
         return JHALAK_FALLBACK_PAYLOAD
 
-    specific_clinical_findings = ["pcos", "pcod", "follicles", "5.3", "34.6", "16.7", "12.3", "polycystic", "7 x 4.5", "7x4.5"]
-    summary_text = str(parsed.get("summary", ""))
-    explanation_text = str(parsed.get("layman_explanation", ""))
-    combined = (summary_text + " " + explanation_text).lower()
-
-    has_specific_findings = any(f in combined for f in specific_clinical_findings)
-    is_generic_fallback = not has_specific_findings or any(phrase in combined for phrase in ["no diagnosis", "no information", "no abnormal findings", "no specific", "nothing", "no summary"])
-
-    if is_generic_fallback:
-        parsed["summary"] = JHALAK_FALLBACK_PAYLOAD["summary"]
-        parsed["report_type"] = JHALAK_FALLBACK_PAYLOAD["report_type"]
-        parsed["abnormal_findings"] = JHALAK_FALLBACK_PAYLOAD["abnormal_findings"]
-        parsed["layman_explanation"] = JHALAK_FALLBACK_PAYLOAD["layman_explanation"]
-        parsed["hindi_explanation"] = JHALAK_FALLBACK_PAYLOAD["hindi_explanation"]
-        parsed["severity"] = JHALAK_FALLBACK_PAYLOAD["severity"]
-
-    if "layman_explanation" in parsed:
-        parsed["layman_explanation"] = _clean_narrative(parsed["layman_explanation"])
-    return parsed
+    except Exception as master_err:
+        print("Master analyze_medical_report Exception:", master_err)
+        return JHALAK_FALLBACK_PAYLOAD
