@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.services.vaidya_report_service import analyze_report
-from app.ai.vaidya_service import JHALAK_FALLBACK_PAYLOAD, _generate_dynamic_report_analysis
+from app.ai.vaidya_service import JHALAK_FALLBACK_PAYLOAD, _universal_layman_fallback
 
 router = APIRouter(
     prefix="/vaidya-ai",
@@ -33,7 +33,7 @@ async def analyze_medical_report(
     except Exception as e:
         print("Vaidya AI Router Exception Failsafe:", e)
         filename = getattr(file, "filename", "") or ""
-        result = _generate_dynamic_report_analysis("", filename)
+        result = _universal_layman_fallback("", filename)
 
     return {
         "success": True,

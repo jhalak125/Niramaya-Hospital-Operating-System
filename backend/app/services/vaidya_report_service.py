@@ -1,4 +1,4 @@
-from app.ai.vaidya_service import analyze_medical_report, JHALAK_FALLBACK_PAYLOAD, _generate_dynamic_report_analysis
+from app.ai.vaidya_service import analyze_medical_report, JHALAK_FALLBACK_PAYLOAD, _universal_layman_fallback
 
 from app.ai.narration_service import (
     generate_english_narration,
@@ -54,7 +54,7 @@ def _ocr_image_preprocess(img):
                 except Exception:
                     pass
 
-        # If still no text, try 90 degree rotation steps (useful for sideways camera scans)
+        # Rotation checks for sideways scans
         if not extracted_lines:
             for angle in [90, 180, 270]:
                 try:
@@ -134,4 +134,4 @@ async def analyze_report(file):
         return result
     except Exception as master_report_err:
         print("analyze_report Master Exception:", master_report_err)
-        return _generate_dynamic_report_analysis("", getattr(file, "filename", ""))
+        return _universal_layman_fallback("", getattr(file, "filename", ""))
