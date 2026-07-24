@@ -1,4 +1,4 @@
-from app.ai.vaidya_service import analyze_medical_report, JHALAK_FALLBACK_PAYLOAD, _universal_layman_fallback
+from app.ai.vaidya_service import analyze_medical_report
 
 from app.ai.narration_service import (
     generate_english_narration,
@@ -54,7 +54,7 @@ def _ocr_image_preprocess(img):
                 except Exception:
                     pass
 
-        # Rotation checks for sideways scans
+        # Rotation checks for sideways camera photos
         if not extracted_lines:
             for angle in [90, 180, 270]:
                 try:
@@ -115,13 +115,7 @@ async def analyze_report(file):
                 except Exception as pdf_img_err:
                     print("PDF Image OCR Exception:", pdf_img_err)
 
-        upper_text = (extracted_text or "").upper() + " " + filename.upper()
-        is_jhalak_pelvic = ("CHHABRA DIAGNOSTIC" in upper_text and "PELVIC SONOGRAPHY" in upper_text) or ("JHALAK VERMA" in upper_text and "PELVIC" in upper_text)
-
-        if is_jhalak_pelvic:
-            result = JHALAK_FALLBACK_PAYLOAD
-        else:
-            result = await analyze_medical_report(extracted_text, filename=file.filename or "")
+        result = await analyze_medical_report(extracted_text, filename=file.filename or "")
 
         english_text = await generate_english_narration(result)
         hindi_text = await generate_hindi_narration(result)
@@ -134,4 +128,4 @@ async def analyze_report(file):
         return result
     except Exception as master_report_err:
         print("analyze_report Master Exception:", master_report_err)
-        return _universal_layman_fallback("", getattr(file, "filename", ""))
+        return await analyze_medical_report("", getattr(file, "filename", ""))

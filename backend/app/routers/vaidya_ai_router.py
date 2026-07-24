@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.services.vaidya_report_service import analyze_report
-from app.ai.vaidya_service import JHALAK_FALLBACK_PAYLOAD, _universal_layman_fallback
+from app.ai.vaidya_service import analyze_medical_report
 
 router = APIRouter(
     prefix="/vaidya-ai",
@@ -9,7 +9,7 @@ router = APIRouter(
 
 
 @router.post("/analyze")
-async def analyze_medical_report(
+async def analyze_medical_report_endpoint(
     file: UploadFile = File(...)
 ):
     allowed_types = [
@@ -33,7 +33,7 @@ async def analyze_medical_report(
     except Exception as e:
         print("Vaidya AI Router Exception Failsafe:", e)
         filename = getattr(file, "filename", "") or ""
-        result = _universal_layman_fallback("", filename)
+        result = await analyze_medical_report("", filename)
 
     return {
         "success": True,
