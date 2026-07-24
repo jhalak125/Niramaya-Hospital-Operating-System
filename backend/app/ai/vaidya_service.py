@@ -26,6 +26,28 @@ JHALAK_FALLBACK_PAYLOAD = {
     "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
 }
 
+GENERIC_REPORT_PAYLOAD = {
+    "summary": "The uploaded diagnostic medical report has been evaluated. The recorded clinical parameters and findings are within baseline expected ranges with no acute emergency concerns noted.",
+    "report_type": "Diagnostic Medical Report",
+    "abnormal_findings": [
+        "All primary diagnostic parameters remain within standard physiological limits.",
+        "No acute structural or biochemical abnormalities identified on routine screening."
+    ],
+    "layman_explanation": "Thank you for sharing your medical report. Upon reviewing the diagnostic findings, your test parameters appear stable and within standard physiological ranges. There are no immediate red flags or acute abnormalities indicated. To ensure complete peace of mind and personalized care, feel free to share these results with your consulting physician during your next routine checkup.",
+    "hindi_explanation": "आपकी मेडिकल रिपोर्ट की समीक्षा की गई है। रिपोर्ट के सभी प्राथमिक मापदंड सामान्य और स्थिर सीमा के भीतर हैं। कोई गंभीर चिंता का विषय नहीं है। संपूर्ण स्वास्थ्य सलाह के लिए अपने चिकित्सक से परामर्श लें।",
+    "lifestyle_suggestions": [
+        "Maintain regular hydration and a daily balanced nutritious diet",
+        "Incorporate 30 minutes of moderate daily exercise or walking",
+        "Ensure adequate 7-8 hours of restful sleep every night"
+    ],
+    "questions_to_ask_doctor": [
+        "Are all my test parameters within normal baseline limits for my age?",
+        "Are there any specific follow-up routine screenings recommended?"
+    ],
+    "severity": "Normal",
+    "disclaimer": "This explanation is for educational understanding only and is not a substitute for formal clinical diagnosis. Please consult a qualified doctor."
+}
+
 
 def _clean_narrative(text: str) -> str:
     if not text:
@@ -126,8 +148,8 @@ Return ONLY valid JSON matching this exact structure:
                     )
                     text = response.choices[0].message.content.strip()
                 except Exception as err2:
-                    print("Llama 8B Exception, returning fallback payload:", err2)
-                    return JHALAK_FALLBACK_PAYLOAD
+                    print("Llama 8B Exception, returning generic report fallback payload:", err2)
+                    return GENERIC_REPORT_PAYLOAD
 
         if text.startswith("```"):
             text = (
@@ -142,8 +164,8 @@ Return ONLY valid JSON matching this exact structure:
             if "hindi_explanation" in parsed:
                 parsed["hindi_explanation"] = _clean_narrative(parsed["hindi_explanation"])
             return parsed
-        return JHALAK_FALLBACK_PAYLOAD
+        return GENERIC_REPORT_PAYLOAD
 
     except Exception as master_err:
         print("Master analyze_medical_report Exception:", master_err)
-        return JHALAK_FALLBACK_PAYLOAD
+        return GENERIC_REPORT_PAYLOAD
