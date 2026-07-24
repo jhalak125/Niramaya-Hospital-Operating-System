@@ -17,9 +17,10 @@ import {
   Search,
   AlertCircle,
   Loader2,
-  CheckCircle2,
   Receipt,
-  X
+  X,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 export const AdminDashboard = () => {
@@ -29,12 +30,15 @@ export const AdminDashboard = () => {
   const [patientsList, setPatientsList] = useState([]);
   const [appointmentsList, setAppointmentsList] = useState([]);
   const [billsList, setBillsList] = useState([]);
-  const [paymentsList, setPaymentsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview'); // overview | doctors | patients | appointments | bills
   const [errorMsg, setErrorMsg] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Doctor Modals State
   const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
+  const [showEditDoctorModal, setShowEditDoctorModal] = useState(false);
+  const [editingDoctorId, setEditingDoctorId] = useState(null);
   const [doctorForm, setDoctorForm] = useState({
     user_id: '',
     doctor_name: '',
@@ -47,6 +51,20 @@ export const AdminDashboard = () => {
     start_time: '09:00 AM',
     end_time: '05:00 PM',
     status: 'available',
+  });
+
+  // Patient Modals State
+  const [showEditPatientModal, setShowEditPatientModal] = useState(false);
+  const [editingPatientId, setEditingPatientId] = useState(null);
+  const [patientForm, setPatientForm] = useState({
+    full_name: '',
+    age: 30,
+    gender: 'Male',
+    blood_group: 'O+',
+    phone: '',
+    email: '',
+    address: '',
+    emergency_contact: '',
   });
 
   const fetchAdminData = async () => {
@@ -94,6 +112,7 @@ export const AdminDashboard = () => {
     fetchAdminData();
   }, []);
 
+  // Doctor Action Handlers
   const handleAddDoctorSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -127,6 +146,90 @@ export const AdminDashboard = () => {
     }
   };
 
+  const openEditDoctor = (doc) => {
+    setEditingDoctorId(doc._id || doc.id);
+    setDoctorForm({
+      user_id: doc.user_id || '',
+      doctor_name: doc.doctor_name || doc.full_name || '',
+      department: doc.department || 'General Medicine',
+      specialization: doc.specialization || 'Senior Physician',
+      qualification: doc.qualification || 'MBBS, MD',
+      experience: doc.experience || 5,
+      consultation_fee: doc.consultation_fee || 1000,
+      working_days: doc.working_days || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      start_time: doc.start_time || '09:00 AM',
+      end_time: doc.end_time || '05:00 PM',
+      status: doc.status || 'available',
+    });
+    setShowEditDoctorModal(true);
+  };
+
+  const handleEditDoctorSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await doctorService.updateDoctor(editingDoctorId, doctorForm);
+      setShowEditDoctorModal(false);
+      setEditingDoctorId(null);
+      fetchAdminData();
+    } catch (err) {
+      alert(err.message || 'Failed to update doctor profile');
+    }
+  };
+
+  const handleDeleteDoctor = async (doc) => {
+    const docId = doc._id || doc.id;
+    const docName = doc.doctor_name || doc.full_name || 'this doctor';
+    if (window.confirm(`Are you sure you want to permanently delete ${docName}?`)) {
+      try {
+        await doctorService.deleteDoctor(docId);
+        fetchAdminData();
+      } catch (err) {
+        alert(err.message || 'Failed to delete doctor profile');
+      }
+    }
+  };
+
+  // Patient Action Handlers
+  const openEditPatient = (pt) => {
+    setEditingPatientId(pt._id || pt.id);
+    setPatientForm({
+      full_name: pt.full_name || '',
+      age: pt.age || 30,
+      gender: pt.gender || 'Male',
+      blood_group: pt.blood_group || 'O+',
+      phone: pt.phone || '',
+      email: pt.email || '',
+      address: pt.address || '',
+      emergency_contact: pt.emergency_contact || '',
+    });
+    setShowEditPatientModal(true);
+  };
+
+  const handleEditPatientSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await patientService.updatePatient(editingPatientId, patientForm);
+      setShowEditPatientModal(false);
+      setEditingPatientId(null);
+      fetchAdminData();
+    } catch (err) {
+      alert(err.message || 'Failed to update patient profile');
+    }
+  };
+
+  const handleDeletePatient = async (pt) => {
+    const ptId = pt._id || pt.id;
+    const ptName = pt.full_name || 'this patient';
+    if (window.confirm(`Are you sure you want to permanently delete patient record for ${ptName}?`)) {
+      try {
+        await patientService.deletePatient(ptId);
+        fetchAdminData();
+      } catch (err) {
+        alert(err.message || 'Failed to delete patient record');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-700">
@@ -150,7 +253,7 @@ export const AdminDashboard = () => {
             Welcome, {adminDisplayName}
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-1">
-            Real-time management of patients, specialist doctors, scheduled appointments, and billing receipts.
+            Full administrative access to add, edit, and delete doctors, patients, appointments, and billing receipts.
           </p>
         </div>
 
@@ -168,7 +271,7 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Navigation Tabs - Responsive Scroll Container */}
+      {/* Navigation Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto scrollbar-none">
         {[
           { id: 'overview', label: 'Overview Analytics', icon: Activity },
@@ -259,7 +362,7 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Doctors List */}
+      {/* Doctors List with Update & Delete Controls */}
       {activeTab === 'doctors' && (
         <div className="glass-card rounded-3xl p-4 sm:p-6 border border-slate-200 space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -277,7 +380,7 @@ export const AdminDashboard = () => {
           </div>
 
           <div className="overflow-x-auto -mx-4 sm:mx-0">
-            <table className="w-full text-left text-xs text-slate-700 min-w-[640px]">
+            <table className="w-full text-left text-xs text-slate-700 min-w-[700px]">
               <thead className="bg-slate-100 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
                 <tr>
                   <th className="p-3">Doctor Name</th>
@@ -286,12 +389,13 @@ export const AdminDashboard = () => {
                   <th className="p-3">Experience</th>
                   <th className="p-3">Consultation Fee</th>
                   <th className="p-3">Status</th>
+                  <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {doctorsList.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-slate-500">
+                    <td colSpan="7" className="text-center py-8 text-slate-500">
                       No doctor records found. Click "Add Specialist Doctor" to insert a doctor profile.
                     </td>
                   </tr>
@@ -325,6 +429,22 @@ export const AdminDashboard = () => {
                             {doc.status || 'available'}
                           </span>
                         </td>
+                        <td className="p-3 text-right space-x-2">
+                          <button
+                            onClick={() => openEditDoctor(doc)}
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-brand-50 text-slate-600 hover:text-brand-600 border border-slate-200 transition-colors"
+                            title="Edit Doctor Profile"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDoctor(doc)}
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 transition-colors"
+                            title="Delete Doctor Profile"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
                       </tr>
                     ))
                 )}
@@ -334,7 +454,7 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Patients Directory */}
+      {/* Patients Directory with Update & Delete Controls */}
       {activeTab === 'patients' && (
         <div className="glass-card rounded-3xl p-4 sm:p-6 border border-slate-200 space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -352,7 +472,7 @@ export const AdminDashboard = () => {
           </div>
 
           <div className="overflow-x-auto -mx-4 sm:mx-0">
-            <table className="w-full text-left text-xs text-slate-700 min-w-[640px]">
+            <table className="w-full text-left text-xs text-slate-700 min-w-[700px]">
               <thead className="bg-slate-100 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
                 <tr>
                   <th className="p-3">Patient Name</th>
@@ -361,12 +481,13 @@ export const AdminDashboard = () => {
                   <th className="p-3">Phone Number</th>
                   <th className="p-3">Email Address</th>
                   <th className="p-3">Emergency Contact</th>
+                  <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {patientsList.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-slate-500">
+                    <td colSpan="7" className="text-center py-8 text-slate-500">
                       No patient records currently stored.
                     </td>
                   </tr>
@@ -388,6 +509,22 @@ export const AdminDashboard = () => {
                         <td className="p-3 font-medium text-slate-800">{pt.phone}</td>
                         <td className="p-3 text-slate-600">{pt.email}</td>
                         <td className="p-3 text-slate-600">{pt.emergency_contact || 'N/A'}</td>
+                        <td className="p-3 text-right space-x-2">
+                          <button
+                            onClick={() => openEditPatient(pt)}
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-brand-50 text-slate-600 hover:text-brand-600 border border-slate-200 transition-colors"
+                            title="Edit Patient Profile"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePatient(pt)}
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 transition-colors"
+                            title="Delete Patient Record"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
                       </tr>
                     ))
                 )}
@@ -451,12 +588,12 @@ export const AdminDashboard = () => {
                         <td className="p-3">
                           <span
                             className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                              apt.status === 'completed'
+                              apt.status === 'confirmed' || apt.status === 'completed'
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : 'bg-amber-50 text-amber-700 border border-amber-200'
                             }`}
                           >
-                            {apt.status}
+                            {apt.status || 'scheduled'}
                           </span>
                         </td>
                       </tr>
@@ -468,69 +605,48 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Bills & Financial Records */}
+      {/* Bills Tab */}
       {activeTab === 'bills' && (
         <div className="glass-card rounded-3xl p-4 sm:p-6 border border-slate-200 space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900">Billing & Financial Records</h3>
-            <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search patient or payment status..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 outline-none"
-              />
-            </div>
-          </div>
-
+          <h3 className="text-base sm:text-lg font-bold text-slate-900">Billing & Receipts</h3>
           <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full text-left text-xs text-slate-700 min-w-[640px]">
               <thead className="bg-slate-100 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
                 <tr>
-                  <th className="p-3">Patient Name</th>
-                  <th className="p-3">Consultation Fee</th>
-                  <th className="p-3">Medicine Cost</th>
-                  <th className="p-3">Lab Tests Cost</th>
+                  <th className="p-3">Bill ID</th>
+                  <th className="p-3">Patient ID</th>
                   <th className="p-3">Total Amount</th>
                   <th className="p-3">Payment Status</th>
+                  <th className="p-3">Date Issued</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {billsList.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-slate-500">
-                      No billing records currently stored.
+                    <td colSpan="5" className="text-center py-8 text-slate-500">
+                      No billing receipts found.
                     </td>
                   </tr>
                 ) : (
-                  billsList
-                    .filter(
-                      (b) =>
-                        (b.patient_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        (b.payment_status || '').toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map((b, idx) => (
-                      <tr key={b._id || idx} className="hover:bg-slate-50">
-                        <td className="p-3 font-extrabold text-slate-900">{b.patient_name || 'Patient'}</td>
-                        <td className="p-3 font-medium text-slate-800">₹{b.consultation_fee ?? 0}</td>
-                        <td className="p-3 font-medium text-slate-800">₹{b.medicine_cost ?? 0}</td>
-                        <td className="p-3 font-medium text-slate-800">₹{b.test_cost ?? 0}</td>
-                        <td className="p-3 font-extrabold text-emerald-700">₹{b.total_amount ?? 0}</td>
-                        <td className="p-3">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                              b.payment_status === 'Paid'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border border-amber-200'
-                            }`}
-                          >
-                            {b.payment_status || 'Pending'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
+                  billsList.map((bill, idx) => (
+                    <tr key={bill._id || idx} className="hover:bg-slate-50">
+                      <td className="p-3 font-mono font-bold text-slate-900">{bill.bill_id || bill._id}</td>
+                      <td className="p-3 font-semibold text-slate-700">{bill.patient_id}</td>
+                      <td className="p-3 text-emerald-700 font-extrabold">₹{bill.total_amount}</td>
+                      <td className="p-3">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            bill.status === 'paid'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          {bill.status || 'pending'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-slate-600">{bill.created_at || 'Today'}</td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -538,13 +654,13 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Modal for Adding Doctor */}
+      {/* Modal: Add Specialist Doctor */}
       {showAddDoctorModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-panel bg-white rounded-3xl p-6 max-w-lg w-full border border-slate-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-brand-600" /> Register Specialist Doctor
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-brand-600" /> Add Specialist Doctor Profile
               </h3>
               <button
                 onClick={() => setShowAddDoctorModal(false)}
@@ -568,7 +684,7 @@ export const AdminDashboard = () => {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">User ID / Email Handle (Optional)</label>
+                <label className="block text-slate-700 font-semibold mb-1">User ID / Handle</label>
                 <input
                   type="text"
                   placeholder="e.g. dr.rajesh@niramaya.org"
@@ -646,6 +762,235 @@ export const AdminDashboard = () => {
                   className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold"
                 >
                   Save Doctor Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Specialist Doctor */}
+      {showEditDoctorModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-brand-600" /> Edit Specialist Doctor Profile
+              </h3>
+              <button
+                onClick={() => setShowEditDoctorModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditDoctorSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Doctor Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={doctorForm.doctor_name}
+                  onChange={(e) => setDoctorForm({ ...doctorForm, doctor_name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Department</label>
+                  <input
+                    type="text"
+                    required
+                    value={doctorForm.department}
+                    onChange={(e) => setDoctorForm({ ...doctorForm, department: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Specialization</label>
+                  <input
+                    type="text"
+                    required
+                    value={doctorForm.specialization}
+                    onChange={(e) => setDoctorForm({ ...doctorForm, specialization: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Qualification</label>
+                  <input
+                    type="text"
+                    value={doctorForm.qualification}
+                    onChange={(e) => setDoctorForm({ ...doctorForm, qualification: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Experience (Yrs)</label>
+                  <input
+                    type="number"
+                    required
+                    value={doctorForm.experience}
+                    onChange={(e) => setDoctorForm({ ...doctorForm, experience: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Fee (₹ INR)</label>
+                  <input
+                    type="number"
+                    required
+                    value={doctorForm.consultation_fee}
+                    onChange={(e) => setDoctorForm({ ...doctorForm, consultation_fee: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Availability Status</label>
+                <select
+                  value={doctorForm.status}
+                  onChange={(e) => setDoctorForm({ ...doctorForm, status: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                >
+                  <option value="available">Available</option>
+                  <option value="unavailable">Unavailable / On Leave</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditDoctorModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold"
+                >
+                  Update Doctor Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Patient Record */}
+      {showEditPatientModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-brand-600" /> Edit Patient Record
+              </h3>
+              <button
+                onClick={() => setShowEditPatientModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditPatientSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Patient Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={patientForm.full_name}
+                  onChange={(e) => setPatientForm({ ...patientForm, full_name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Age</label>
+                  <input
+                    type="number"
+                    required
+                    value={patientForm.age}
+                    onChange={(e) => setPatientForm({ ...patientForm, age: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Gender</label>
+                  <select
+                    value={patientForm.gender}
+                    onChange={(e) => setPatientForm({ ...patientForm, gender: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Blood Group</label>
+                  <input
+                    type="text"
+                    value={patientForm.blood_group}
+                    onChange={(e) => setPatientForm({ ...patientForm, blood_group: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={patientForm.phone}
+                    onChange={(e) => setPatientForm({ ...patientForm, phone: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-semibold mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={patientForm.email}
+                    onChange={(e) => setPatientForm({ ...patientForm, email: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Emergency Contact</label>
+                <input
+                  type="text"
+                  value={patientForm.emergency_contact}
+                  onChange={(e) => setPatientForm({ ...patientForm, emergency_contact: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 outline-none focus:border-brand-600"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditPatientModal(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold"
+                >
+                  Update Patient Record
                 </button>
               </div>
             </form>
