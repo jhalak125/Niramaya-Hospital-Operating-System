@@ -5,6 +5,7 @@ from groq import Groq
 from dotenv import load_dotenv
 from app.services.doctor_service import get_department_doctors
 from app.utils.department_mapper import map_department
+from app.ai.github_models_service import call_github_models
 
 load_dotenv()
 
@@ -104,32 +105,51 @@ Return ONLY valid JSON with this exact structure:
 """
 
     result = None
+    text = ""
 
-    try:
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an experienced medical triage assistant. Always return pure structured JSON."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.2
-        )
+    # 1. Try GitHub Models if GITHUB_TOKEN is available
+    if os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN"):
+        try:
+            text = call_github_models(
+                prompt=prompt,
+                system_prompt="You are an experienced medical triage assistant. Always return pure structured JSON.",
+                model="Meta-Llama-3.3-70B-Instruct"
+            )
+        except Exception as gh_err:
+            print("Symptom Checker GitHub Models Exception:", gh_err)
 
-        text = response.choices[0].message.content.strip()
+    # 2. Try Groq API if GitHub Models failed or is not set
+    if not text:
+        try:
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an experienced medical triage assistant. Always return pure structured JSON."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=0.2
+            )
+            text = response.choices[0].message.content.strip()
+        except Exception as e:
+            print("Symptom Checker Groq Exception:", e)
 
-        if text.startswith("```"):
-            text = re.sub(r'^```(json)?\s*', '', text, flags=re.IGNORECASE)
-            text = re.sub(r'\s*```$', '', text)
+    if text:
+        try:
+            if text.startswith("```"):
+                text = re.sub(r'^```(json)?\s*', '', text, flags=re.IGNORECASE)
+                text = re.sub(r'\s*```$', '', text)
 
-        result = json.loads(text)
-    except Exception as e:
-        print("Symptom Checker Groq/Parsing Exception:", e)
+            result = json.loads(text)
+        except Exception as parse_err:
+            print("Symptom Checker JSON Parse Exception:", parse_err)
+            result = _get_fallback_symptom_result(symptoms)
+    else:
         result = _get_fallback_symptom_result(symptoms)
 
     if not isinstance(result, dict) or "recommended_department" not in result:

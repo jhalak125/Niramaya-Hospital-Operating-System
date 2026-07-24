@@ -1,6 +1,8 @@
 import json
+import os
 import re
 from app.ai.groq_service import client
+from app.ai.github_models_service import call_github_models
 
 JHALAK_FALLBACK_PAYLOAD = {
     "summary": "The pelvic sonography report for Miss Jhalak Verma from Chhabra Diagnostic Centre shows polycystic ovarian morphology with 20 to 25 tiny 3 to 6 mm follicles in both enlarged ovaries (Right: 16.7 cc, Left: 12.3 cc), while the uterus, 5.3 mm endometrium, and cervix appear healthy and normal.",
@@ -74,27 +76,23 @@ Return ONLY valid JSON matching this exact structure:
 """
 
         text = ""
-        try:
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are Dr. Vaidya, an expert medical report interpreter. Always return structured JSON with detailed, simple layman explanations of diagnostic findings."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                temperature=0.2
-            )
-            text = response.choices[0].message.content.strip()
-        except Exception as err1:
-            print("Llama-3.3-70B Exception, trying Llama-3.1-8B-Instant:", err1)
+
+        # 1. Try GitHub Models (Llama 3.3 70B Instruct) if GITHUB_TOKEN is available
+        if os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN"):
+            try:
+                text = call_github_models(
+                    prompt=prompt,
+                    system_prompt="You are Dr. Vaidya, an expert medical report interpreter. Always return structured JSON.",
+                    model="Meta-Llama-3.3-70B-Instruct"
+                )
+            except Exception as gh_err:
+                print("GitHub Models Exception, falling back to Groq:", gh_err)
+
+        # 2. Try Groq API if GitHub Models was not configured or failed
+        if not text:
             try:
                 response = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model="llama-3.3-70b-versatile",
                     messages=[
                         {
                             "role": "system",
@@ -108,9 +106,27 @@ Return ONLY valid JSON matching this exact structure:
                     temperature=0.2
                 )
                 text = response.choices[0].message.content.strip()
-            except Exception as err2:
-                print("Llama 8B Exception, returning fallback payload:", err2)
-                return JHALAK_FALLBACK_PAYLOAD
+            except Exception as err1:
+                print("Llama-3.3-70B Exception, trying Llama-3.1-8B-Instant:", err1)
+                try:
+                    response = client.chat.completions.create(
+                        model="llama-3.1-8b-instant",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": "You are Dr. Vaidya, an expert medical report interpreter. Always return structured JSON with detailed, simple layman explanations of diagnostic findings."
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        temperature=0.2
+                    )
+                    text = response.choices[0].message.content.strip()
+                except Exception as err2:
+                    print("Llama 8B Exception, returning fallback payload:", err2)
+                    return JHALAK_FALLBACK_PAYLOAD
 
         if text.startswith("```"):
             text = (
