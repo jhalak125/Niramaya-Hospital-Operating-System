@@ -1,4 +1,4 @@
-from app.ai.vaidya_service import analyze_medical_report, JHALAK_PELVIC_REPORT_PAYLOAD
+from app.ai.vaidya_service import analyze_medical_report
 
 from app.ai.narration_service import (
     generate_english_narration,
@@ -83,7 +83,7 @@ def _ocr_image_preprocess(img):
 async def analyze_report(file):
     """
     Extracts text from uploaded image (via multi-pass OCR) or PDF document (via PyPDF/OCR),
-    and sends the exact extracted text to Vaidya AI for analysis.
+    and sends the exact extracted OCR text to Vaidya AI for radiologist analysis.
     """
     try:
         content = await file.read()
@@ -124,11 +124,8 @@ async def analyze_report(file):
                 except Exception as pdf_img_err:
                     print("PDF Image OCR Exception:", pdf_img_err)
 
-        # Direct check for Miss Jhalak Verma's WhatsApp Pelvic Sonography Report scan
-        if ("2026-07-22" in filename) or ("2026 07 22" in filename) or ("chhabra" in filename) or ("pelvic" in filename):
-            result = JHALAK_PELVIC_REPORT_PAYLOAD
-        else:
-            result = await analyze_medical_report(extracted_text, filename=file.filename or "")
+        # Send exact OCR text to radiologist AI prompt
+        result = await analyze_medical_report(extracted_text, filename=file.filename or "")
 
         english_text = await generate_english_narration(result)
         hindi_text = await generate_hindi_narration(result)
