@@ -31,17 +31,26 @@ def _ocr_image_preprocess(img):
         if img.mode not in ("L", "RGB"):
             img = img.convert("RGB")
         w, h = img.size
-        if w < 1200:
-            scale = 1200.0 / w
+        if w < 1600:
+            scale = 1600.0 / w
             img = img.resize((int(w * scale), int(h * scale)), Image.Resampling.LANCZOS)
+
         gray = img.convert("L")
         enhancer = ImageEnhance.Contrast(gray)
-        enhanced = enhancer.enhance(2.0)
-        txt = pytesseract.image_to_string(enhanced, config="--psm 3").strip()
-        if not txt:
-            txt = pytesseract.image_to_string(img, config="--psm 6").strip()
-        if not txt:
-            txt = pytesseract.image_to_string(img).strip()
+        enhanced = enhancer.enhance(2.5)
+
+        sharpener = ImageEnhance.Sharpness(enhanced)
+        sharpened = sharpener.enhance(2.0)
+
+        for config in ["--psm 3", "--psm 6", "--psm 4", "--psm 11", ""]:
+            try:
+                txt = pytesseract.image_to_string(sharpened, config=config).strip()
+                if txt and len(txt) > 20:
+                    return txt
+            except Exception:
+                pass
+
+        txt = pytesseract.image_to_string(img).strip()
         return txt
     except Exception as e:
         print("Image Preprocessing OCR Exception:", e)
