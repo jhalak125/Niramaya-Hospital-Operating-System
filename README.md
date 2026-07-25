@@ -7,6 +7,7 @@
 
 **Niramaya** is an AI-powered healthcare operating platform built for patients, specialist doctors, and healthcare administrators. Featuring instant clinical symptom checking, intelligent lab report file narrations (in English and Hindi), patient appointment scheduling, digital prescription issuance, and administrative financial revenue telemetry.
 
+**Try it here**: https://niramaya-hospital-operating-system.vercel.app/
 ---
 
 ## 🌟 Key Features
