@@ -30,6 +30,4 @@
 
 ---
 
-## 👤 Developer & Credits
-
 Designed & Developed with ❤️ by **Jhalak Verma**.
