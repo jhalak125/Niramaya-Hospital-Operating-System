@@ -11,7 +11,7 @@
 
 ## 🌟 Key Features
 
-- 🏥 **Patient Portal Workspace**: Browse specialist doctor directories, book consultation appointments in Indian Rupees (₹), track appointment statuses, and upload digital payment proofs.
+- 🏥 **Patient Portal Workspace**: Browse specialist doctor directories, book consultation appointments, track appointment statuses, and upload digital payment proofs.
 - 🩺 **Doctor Clinical Workspace**: View scheduled appointments, issue electronic prescriptions, add lab tests, submit lab report diagnostics, and access patient clinical history.
 - 📊 **Executive Control Console (Admin Dashboard)**: Monitor patient registries, specialist doctor profiles, scheduled consultations, financial billing receipts, and exact system metrics.
 - 🤖 **Free AI Health Symptom Checker**: Instant clinical triage and department recommendations based on plain text symptoms — accessible freely without login requirements.
@@ -27,52 +27,6 @@
 - **Database**: Cloud MongoDB Atlas
 - **AI Triage & OCR Engine**: Google Gemini API, Groq AI, gTTS (Google Text-to-Speech)
 - **Authentication**: JWT Token-based Auth & Role-Based Access Control (RBAC)
-
----
-
-## 🚀 Getting Started Locally
-
-### Prerequisites
-- Python 3.9+
-- Node.js v18+ & npm
-- MongoDB Atlas cluster URI
-
-### 1. Backend Setup
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/venv/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-# Fill in your MONGODB_URL and API keys in .env
-python main.py
-```
-Backend server will run at `http://localhost:8000`. API docs available at `http://localhost:8000/docs`.
-
-### 2. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Frontend application will launch at `http://localhost:5173`.
-
----
-
-## 🚢 Deployment Guide
-
-### Backend Deployment (Render / Railway / Fly.io / Docker)
-1. Push this repository to GitHub.
-2. Link the repository to your hosting service (e.g. Render Web Service).
-3. Set Build Command: `pip install -r backend/requirements.txt`
-4. Set Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT` in root or `cd backend && python main.py`
-5. Configure Environment Variables from `.env.example`.
-
-### Frontend Deployment (Vercel / Netlify)
-1. Link repository to Vercel/Netlify.
-2. Root Directory: `frontend`
-3. Build Command: `npm run build`
-4. Output Directory: `dist`
 
 ---
 
