@@ -92,7 +92,7 @@ export const Navbar = () => {
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
-    <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-7xl">
+    <header className="fixed top-2 sm:top-4 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 w-auto sm:w-[94%] max-w-7xl mx-auto">
       <nav
         className={`glass-nav transition-all duration-300 px-4 sm:px-6 py-2.5 ${
           mobileMenuOpen ? 'rounded-3xl bg-white/98 shadow-2xl border-slate-300' : 'rounded-full'

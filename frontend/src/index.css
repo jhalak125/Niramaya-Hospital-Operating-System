@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+  html, body, #root {
+    @apply bg-slate-50 text-slate-900 antialiased overflow-x-hidden w-full max-w-full;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }

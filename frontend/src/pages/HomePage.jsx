@@ -77,27 +77,27 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-28 pb-16 overflow-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-24 sm:pt-28 pb-16 overflow-x-hidden w-full max-w-full relative">
       {/* Background ambient glowing soft gradient circles */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-brand-500/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-[500px] h-[300px] sm:w-[700px] sm:h-[400px] bg-brand-500/10 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none -z-10" />
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 text-center relative">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-16 sm:pb-20 text-center relative w-full overflow-x-hidden">
         {/* Floating Badge */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full glass-panel border border-brand-200 text-xs sm:text-sm text-brand-700 shadow-sm mb-8">
-          <span className="flex h-2 w-2 relative">
+        <div className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full glass-panel border border-brand-200 text-xs sm:text-sm text-brand-700 shadow-sm mb-6 sm:mb-8 max-w-[95vw]">
+          <span className="flex h-2 w-2 relative shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="font-bold">Nirmaya Hospital Operating System</span>
-          <span className="text-slate-300">|</span>
+          <span className="font-bold">Niramaya Hospital Operating System</span>
+          <span className="text-slate-300 hidden sm:inline">|</span>
           <span className="text-teal-700 font-semibold flex items-center gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-teal-600" /> Vaidya AI
+            <Sparkles className="w-3.5 h-3.5 text-teal-600 shrink-0" /> Vaidya AI
           </span>
         </div>
 
         {/* Hero Title */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 max-w-5xl mx-auto leading-[1.1] mb-6">
+        <h1 className="text-3xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 max-w-5xl mx-auto leading-[1.15] mb-4 sm:mb-6 break-words">
           Precision Indian Healthcare & <br className="hidden sm:inline" />
           <span className="bg-gradient-to-r from-brand-700 via-blue-600 to-teal-600 bg-clip-text text-transparent">
             Clinical AI Platform
