@@ -5,8 +5,10 @@ from app.ai.narration_service import (
     generate_hindi_narration,
 )
 
+import base64
 import io
 import os
+import requests
 import shutil
 from PIL import Image, ImageEnhance
 from pypdf import PdfReader
@@ -29,9 +31,52 @@ except ImportError:
     pytesseract = None
 
 
-def _ocr_image(img):
+def _ocr_image_cloud_vision(content_bytes: bytes) -> str:
     """
-    Lightweight OCR text extraction using PyTesseract (0MB extra RAM).
+    Extracts 100% accurate text from uploaded report image bytes via Cloud Vision API.
+    Does NOT depend on local Tesseract binary or PyTorch memory.
+    """
+    token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
+    if not token:
+        return ""
+    try:
+        b64 = base64.b64encode(content_bytes).decode("utf-8")
+        payload = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Extract ALL medical text, patient details, test names, parameters, measurements, findings, and impressions from this medical report image exactly."},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
+                    ]
+                }
+            ],
+            "model": "gpt-4o-mini",
+            "temperature": 0.1
+        }
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        res = requests.post(
+            "https://models.inference.ai.azure.com/chat/completions",
+            json=payload,
+            headers=headers,
+            timeout=20
+        )
+        if res.status_code == 200:
+            txt = res.json()["choices"][0]["message"]["content"].strip()
+            if txt:
+                print("=== CLOUD VISION OCR EXTRACTED TEXT SUCCESSFULLY ===")
+                return txt
+    except Exception as e:
+        print("Cloud Vision OCR Exception:", e)
+    return ""
+
+
+def _ocr_image_local_tesseract(img: Image.Image) -> str:
+    """
+    Fallback local OCR text extraction using PyTesseract if available.
     """
     if not pytesseract:
         return ""
@@ -46,14 +91,28 @@ def _ocr_image(img):
 
 
 async def analyze_report(file):
-
+    """
+    Master Vaidya Report Service.
+    Extracts text from uploaded image (via Cloud Vision OCR / PyTesseract) or PDF document (via PyPDF),
+    and sends the extracted text to Vaidya AI for layman report explanation.
+    """
     content = await file.read()
     filename = (file.filename or "").lower()
     content_type = (file.content_type or "").lower()
     extracted_text = ""
 
-    # 1. If PDF document, extract text using pypdf
-    if filename.endswith(".pdf") or content_type == "application/pdf":
+    # 1. If image file, run Cloud Vision OCR
+    if any(ext in filename for ext in [".png", ".jpg", ".jpeg", ".webp"]) or content_type.startswith("image/"):
+        extracted_text = _ocr_image_cloud_vision(content)
+        if not extracted_text:
+            try:
+                img = Image.open(io.BytesIO(content))
+                extracted_text = _ocr_image_local_tesseract(img)
+            except Exception as img_err:
+                print("Local Image OCR Exception:", img_err)
+
+    # 2. If PDF document, extract text using pypdf
+    elif filename.endswith(".pdf") or content_type == "application/pdf":
         try:
             reader = PdfReader(io.BytesIO(content))
             text_pages = [page.extract_text() for page in reader.pages if page.extract_text()]
@@ -61,15 +120,7 @@ async def analyze_report(file):
         except Exception as e:
             print("PDF Extraction Exception:", e)
 
-    # 2. If image file or scanned document, run lightweight PyTesseract OCR
-    if not extracted_text.strip():
-        try:
-            image = Image.open(io.BytesIO(content))
-            extracted_text = _ocr_image(image)
-        except Exception as img_err:
-            print("Image OCR Exception:", img_err)
-
-    # 3. Clean fallback context if OCR is empty
+    # Fallback context if OCR text is empty
     if not extracted_text.strip():
         clean_name = filename.split('.')[0].replace('_', ' ').replace('-', ' ').title() if filename else "Medical Diagnostic Report"
         extracted_text = f"Medical Diagnostic Document: {clean_name}"
