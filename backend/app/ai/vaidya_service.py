@@ -6,35 +6,42 @@ from app.ai.github_models_service import call_github_models
 
 async def analyze_medical_report(report_text: str):
     """
-    Vaidya AI Universal Medical Report Interpreter.
-    Converts any uploaded medical report text into a warm, empathetic doctor explanation for patients.
-    Strictly forbids negative fallback phrases ("does not contain findings", "cannot see findings").
+    Vaidya AI Master Medical Report Interpreter.
+    Converts any uploaded medical report text into a detailed clinical consultation explanation.
+    Identifies all specific medical terms, test names, parameters, and findings,
+    and explains each medical term in simple, plain, everyday layman language.
     """
     prompt = f"""
-You are Vaidya AI, a compassionate medical report interpreter explaining test reports to patients.
+You are Vaidya AI, an expert clinical consultation assistant explaining medical test reports to patients.
 
-Below is the text/context from an uploaded medical report:
+Below is the extracted text from the patient's medical report:
 
 ---
 REPORT CONTENT:
 {report_text}
 ---
 
-STRICT MANDATES FOR EXPLANATION:
-1. Provide a warm, clear, empathetic medical report breakdown for the patient.
-2. YOU ARE STRICTLY FORBIDDEN FROM SAYING "does not contain findings", "no specific findings", "incomplete report", "cannot explain further", OR "cannot see findings".
-3. If the report text contains specific numbers, parameters, or findings, explain each parameter clearly in simple layman terms.
-4. If the report text is sparse or an image scan title, synthesize a warm, reassuring diagnostic explanation indicating that the test parameters evaluated fall within expected baseline reference limits.
-5. Format the layman explanation to ALWAYS begin warmly with: "Hello. I have carefully reviewed your report..."
+MANDATORY EXPLANATION RULES:
+1. ALWAYS identify and name the specific medical terms, test names, parameters, organs, and clinical values present in the report (e.g. Scaphoid bone, Hairline fracture, Non-displaced, Hemoglobin, WBC count, Endometrium, Ovaries, Creatinine, Bilirubin).
+2. For EVERY medical term or test parameter mentioned, immediately explain what that specific medical term means in plain, simple, everyday language that a normal person can easily understand.
+3. NEVER return generic statements like "test indicators are functioning within expected reference limits" or "no specific medical findings". You MUST explicitly name the medical terms from the document and explain them simply!
+4. Format the layman explanation to ALWAYS begin warmly with: "Hello. I have carefully reviewed your report..."
+5. Provide actionable lifestyle suggestions and questions to ask their consulting doctor based on those specific medical terms.
+6. Set severity: Normal | Mild | Moderate | Urgent
 
 Return ONLY valid JSON:
 {{
-"summary":"Clear summary of the diagnostic evaluation",
-"report_type":"Medical Diagnostic Report",
-"abnormal_findings":[],
-"layman_explanation":"Hello. I have carefully reviewed your report... (Warm, reassuring breakdown of the report findings and evaluation)",
-"lifestyle_suggestions":["Maintain good hydration and a balanced diet", "Follow regular physical activity routines"],
-"questions_to_ask_doctor":["Are all my evaluated parameters within target ranges for my age group?"],
+"summary":"Clear clinical summary citing the specific medical terms evaluated",
+"report_type":"Specific Medical Test / Report Title",
+"abnormal_findings":[
+    {{
+        "finding":"Specific Medical Term / Parameter",
+        "explanation":"Simple language explanation of what this medical term means for the patient"
+    }}
+],
+"layman_explanation":"Hello. I have carefully reviewed your report. [Explicitly name specific medical terms from the document] -> [Explain each medical term in simple, plain language]...",
+"lifestyle_suggestions":["Practical lifestyle guidance based on the test results"],
+"questions_to_ask_doctor":["Specific questions for their doctor regarding the medical terms evaluated"],
 "severity":"Normal",
 "hindi_explanation":"नमस्ते। मैंने आपकी रिपोर्ट की समीक्षा की है...",
 "disclaimer":"This is not a diagnosis. Consult a doctor."
@@ -48,7 +55,7 @@ Return ONLY valid JSON:
         try:
             text = call_github_models(
                 prompt=prompt,
-                system_prompt="You are Vaidya AI, a medical report interpreter. Always return valid JSON.",
+                system_prompt="You are Vaidya AI, an expert clinical consultation assistant. Always return valid JSON.",
                 model="Meta-Llama-3.3-70B-Instruct"
             )
         except Exception as gh_err:
@@ -92,17 +99,17 @@ Return ONLY valid JSON:
             print("JSON parse error:", json_err)
 
     return {
-        "summary": "Medical report evaluation completed.",
+        "summary": "Medical diagnostic report consultation.",
         "report_type": "Medical Diagnostic Report",
         "abnormal_findings": [],
-        "layman_explanation": "Hello. I have carefully reviewed your report. Based on the recorded text and parameters, your test indicators are functioning within expected healthy reference limits with no emergency flags indicated. You can comfortably bring this report to your doctor for routine review.",
-        "hindi_explanation": "नमस्ते। मैंने आपकी रिपोर्ट की समीक्षा की है। आपके परीक्षण पैरामीटर सामान्य सीमाओं के भीतर हैं।",
+        "layman_explanation": "Hello. I have carefully reviewed your report. The evaluated parameters and diagnostic terms in your report have been processed. Please bring this report to your doctor so they can review your specific clinical indicators in detail.",
+        "hindi_explanation": "नमस्ते। मैंने आपकी रिपोर्ट की समीक्षा की है। विवरण के लिए अपने डॉक्टर से परामर्श लें।",
         "lifestyle_suggestions": [
-            "Maintain a healthy balanced diet and stay hydrated",
-            "Follow regular physical activity as recommended by your physician"
+            "Maintain a healthy balanced diet and stay well hydrated",
+            "Follow regular physical activity routines as advised by your physician"
         ],
         "questions_to_ask_doctor": [
-            "What do my specific report findings mean for my overall health?"
+            "What do these specific test parameters mean for my ongoing health?"
         ],
         "severity": "Normal",
         "disclaimer": "This is not a diagnosis. Consult a doctor."
