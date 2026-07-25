@@ -28,7 +28,6 @@ export const VaidyaReportViewer = ({ data }) => {
       }
       setIsPlaying(false);
     } else {
-      // Try playing generated audio file or fallback to Web Speech API
       if (currentAudioUrl) {
         if (!audioRef.current) {
           audioRef.current = new Audio(currentAudioUrl);
@@ -63,28 +62,28 @@ export const VaidyaReportViewer = ({ data }) => {
   };
 
   return (
-    <div className="space-y-4 rounded-2xl bg-gradient-to-br from-teal-50 to-emerald-50/60 p-5 border border-teal-200 text-slate-800 text-xs shadow-sm">
+    <div className="space-y-4 rounded-2xl bg-gradient-to-br from-teal-50 to-emerald-50/60 p-3.5 sm:p-5 border border-teal-200 text-slate-800 text-xs sm:text-sm shadow-sm w-full max-w-full overflow-hidden">
       {/* Top Header */}
-      <div className="flex items-center justify-between border-b border-teal-200/80 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-teal-200/80 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="font-extrabold text-slate-900 text-sm">Vaidya AI Diagnostic Analysis</h4>
+            <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm leading-tight">Vaidya AI Diagnostic Analysis</h4>
             <p className="text-[10px] text-teal-700 font-semibold">Indian Clinical Multilingual Voice Output</p>
           </div>
         </div>
 
         {/* Audio Language Switcher */}
-        <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-teal-200">
+        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-teal-200 self-stretch sm:self-auto justify-center">
           <button
             type="button"
             onClick={() => {
               setActiveLang('hi');
               if (isPlaying) handleTogglePlay();
             }}
-            className={`px-3 py-1 rounded-lg font-bold text-[11px] transition-all ${
+            className={`flex-1 sm:flex-none px-3 py-1 rounded-lg font-bold text-[11px] transition-all text-center ${
               activeLang === 'hi'
                 ? 'bg-teal-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -98,7 +97,7 @@ export const VaidyaReportViewer = ({ data }) => {
               setActiveLang('en');
               if (isPlaying) handleTogglePlay();
             }}
-            className={`px-3 py-1 rounded-lg font-bold text-[11px] transition-all ${
+            className={`flex-1 sm:flex-none px-3 py-1 rounded-lg font-bold text-[11px] transition-all text-center ${
               activeLang === 'en'
                 ? 'bg-teal-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -110,10 +109,10 @@ export const VaidyaReportViewer = ({ data }) => {
       </div>
 
       {/* Voice Narration Control Bar */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-teal-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 rounded-xl bg-white border border-teal-200 shadow-xs">
         <div className="flex items-center gap-2">
-          <Globe className="w-4 h-4 text-teal-600" />
-          <span className="font-bold text-slate-800">
+          <Globe className="w-4 h-4 text-teal-600 shrink-0" />
+          <span className="font-bold text-slate-800 text-xs">
             {activeLang === 'hi' ? 'रिपोर्ट विवरण (ऑडियो सुनें):' : 'Report Analysis Narration:'}
           </span>
         </div>
@@ -121,7 +120,7 @@ export const VaidyaReportViewer = ({ data }) => {
         <button
           type="button"
           onClick={handleTogglePlay}
-          className={`px-4 py-1.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-sm ${
+          className={`w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm ${
             isPlaying
               ? 'bg-rose-600 hover:bg-rose-700 text-white'
               : 'bg-teal-600 hover:bg-teal-700 text-white'
@@ -140,17 +139,17 @@ export const VaidyaReportViewer = ({ data }) => {
       </div>
 
       {/* Explanation Text Box */}
-      <div className="p-4 rounded-xl bg-white border border-slate-200 leading-relaxed text-slate-800 whitespace-pre-wrap font-sans text-xs">
+      <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 leading-relaxed text-slate-800 whitespace-pre-wrap font-sans text-xs sm:text-sm break-words overflow-x-auto">
         {currentText}
       </div>
 
       {/* Additional Clinical Details if present */}
       {data.findings && (
         <div className="p-3.5 rounded-xl bg-white/80 border border-teal-200 space-y-1">
-          <div className="font-bold text-teal-900 flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-teal-600" /> Key Clinical Findings:
+          <div className="font-bold text-teal-900 flex items-center gap-1.5 text-xs sm:text-sm">
+            <FileText className="w-4 h-4 text-teal-600 shrink-0" /> Key Clinical Findings:
           </div>
-          <p className="text-slate-700 leading-normal">{data.findings}</p>
+          <p className="text-slate-700 leading-normal text-xs sm:text-sm break-words">{data.findings}</p>
         </div>
       )}
     </div>
