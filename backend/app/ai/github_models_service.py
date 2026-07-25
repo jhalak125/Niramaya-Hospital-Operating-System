@@ -21,7 +21,7 @@ def call_github_models(
         "Authorization": f"Bearer {token}"
     }
 
-    models_to_try = [model, "Meta-Llama-3.3-70B-Instruct", "gpt-4o-mini", "Phi-3.5-mini-instruct"]
+    models_to_try = [model, "Meta-Llama-3.3-70B-Instruct", "gpt-4o-mini"]
 
     last_error = None
     for m in models_to_try:
