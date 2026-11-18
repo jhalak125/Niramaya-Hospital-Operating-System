@@ -35,6 +35,26 @@ export const AdminDashboard = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // --- Guest Mode Mock Data ---
+  const GUEST_ADMIN_DATA = {
+    metrics: { total_patients: 120, total_doctors: 15, total_appointments: 48, total_revenue: 125000 },
+    doctors: [
+      { _id: 'doc-demo-1', doctor_name: 'Dr. Ananya Joshi', department: 'Cardiology', specialization: 'Cardiologist', qualification: 'MBBS, MD', experience: 12, consultation_fee: 1500, status: 'available' },
+      { _id: 'doc-demo-2', doctor_name: 'Dr. Rahul Gupta', department: 'Neurology', specialization: 'Neurologist', qualification: 'MBBS, DM', experience: 8, consultation_fee: 1200, status: 'available' },
+      { _id: 'doc-demo-3', doctor_name: 'Dr. Sana Khan', department: 'Pediatrics', specialization: 'Pediatrician', qualification: 'MBBS, DCH', experience: 6, consultation_fee: 800, status: 'available' },
+    ],
+    patients: [
+      { _id: 'pat-demo-1', full_name: 'Riya Sharma', age: 28, gender: 'Female', blood_group: 'B+', phone: '9876543210', email: 'riya.sharma@example.com', emergency_contact: '9876543211' },
+      { _id: 'pat-demo-2', full_name: 'Arjun Mehta', age: 45, gender: 'Male', blood_group: 'O+', phone: '9123456780', email: 'arjun.mehta@example.com', emergency_contact: '9123456781' },
+      { _id: 'pat-demo-3', full_name: 'Priya Verma', age: 60, gender: 'Female', blood_group: 'A+', phone: '9000012345', email: 'priya.verma@example.com', emergency_contact: '9000012346' },
+    ],
+    appointments: [
+      { _id: 'apt-demo-1', patient_name: 'Riya Sharma', doctor_name: 'Dr. Ananya Joshi', appointment_date: '2026-11-20', time_slot: '10:00 AM - 10:30 AM', reason: 'Chest Pain', status: 'confirmed' },
+      { _id: 'apt-demo-2', patient_name: 'Arjun Mehta', doctor_name: 'Dr. Rahul Gupta', appointment_date: '2026-11-21', time_slot: '11:00 AM - 11:30 AM', reason: 'Migraine', status: 'scheduled' },
+      { _id: 'apt-demo-3', patient_name: 'Priya Verma', doctor_name: 'Dr. Sana Khan', appointment_date: '2026-11-19', time_slot: '09:00 AM - 09:30 AM', reason: 'Child Fever', status: 'completed' },
+    ],
+  };
+
   // Doctor Modals State
   const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
   const [showEditDoctorModal, setShowEditDoctorModal] = useState(false);
@@ -71,6 +91,17 @@ export const AdminDashboard = () => {
     setLoading(true);
     setErrorMsg('');
     try {
+      // In guest mode, show mock data without calling the backend
+      if (user?.is_guest) {
+        setMetrics(GUEST_ADMIN_DATA.metrics);
+        setDoctorsList(GUEST_ADMIN_DATA.doctors);
+        setPatientsList(GUEST_ADMIN_DATA.patients);
+        setAppointmentsList(GUEST_ADMIN_DATA.appointments);
+        setBillsList([]);
+        setLoading(false);
+        return;
+      }
+
       const data = await dashboardService.getAdminDashboard();
       setMetrics(data);
 

@@ -11,7 +11,7 @@ import {
 import logoImg from '../assets/logo.png';
 
 export const SignInPage = () => {
-  const { login } = useAuth();
+  const { login, guestLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -137,6 +137,41 @@ export const SignInPage = () => {
             )}
           </button>
         </form>
+
+        {/* Guest Demo Accounts */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 border-t border-slate-200" />
+            <span className="text-[11px] text-slate-400 font-semibold whitespace-nowrap">or try a demo account</span>
+            <div className="flex-1 border-t border-slate-200" />
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => { guestLogin('doctor'); navigate('/dashboard'); }}
+              className="py-2.5 px-2 rounded-xl font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-sm text-[11px] flex flex-col items-center gap-1 transition-all"
+            >
+              <span className="text-base">👨‍⚕️</span>
+              Guest Doctor
+            </button>
+            <button
+              type="button"
+              onClick={() => { guestLogin('admin'); navigate('/dashboard'); }}
+              className="py-2.5 px-2 rounded-xl font-bold text-white bg-brand-600 hover:bg-brand-700 shadow-sm text-[11px] flex flex-col items-center gap-1 transition-all"
+            >
+              <span className="text-base">🛡️</span>
+              Guest Admin
+            </button>
+            <button
+              type="button"
+              onClick={() => { guestLogin('patient'); navigate('/dashboard'); }}
+              className="py-2.5 px-2 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm text-[11px] flex flex-col items-center gap-1 transition-all"
+            >
+              <span className="text-base">🧑‍💼</span>
+              Guest Patient
+            </button>
+          </div>
+        </div>
 
         {/* Footer link */}
         <div className="text-center pt-4 border-t border-slate-100 text-xs text-slate-600">

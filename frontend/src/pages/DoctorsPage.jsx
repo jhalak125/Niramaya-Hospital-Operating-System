@@ -26,7 +26,7 @@ export const DoctorsPage = () => {
       setLoading(true);
       try {
         const res = await doctorService.getAllDoctors();
-        const list = Array.isArray(res) ? res : res?.doctors || [];
+        const list = Array.isArray(res) ? res : res?.doctors || res?.data || [];
         setDoctors(list);
       } catch (err) {
         console.error('Failed to load doctors:', err);

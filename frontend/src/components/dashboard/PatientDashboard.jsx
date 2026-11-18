@@ -33,6 +33,23 @@ export const PatientDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('appointments'); // appointments | prescriptions | reports
 
+  // --- Guest Mode Mock Data ---
+  const GUEST_PATIENT_DATA = {
+    metrics: { total_appointments: 3, upcoming_appointments: 1, prescriptions: 2 },
+    appointments: [
+      { _id: 'apt-guest-1', appointment_id: 'APPT-GUEST-001', doctor_id: 'doc-guest-1', appointment_date: '2026-11-25', time_slot: '10:00 AM - 10:30 AM', reason: 'General Checkup', status: 'Confirmed' },
+      { _id: 'apt-guest-2', appointment_id: 'APPT-GUEST-002', doctor_id: 'doc-guest-2', appointment_date: '2026-11-10', time_slot: '09:00 AM - 09:30 AM', reason: 'Fever & Cold', status: 'Completed' },
+    ],
+    prescriptions: [
+      { _id: 'presc-guest-1', diagnosis: 'Viral Fever & URTI', advice: 'Drink warm water, rest for 3 days, take medicines after meals.', medicines: [{ name: 'Tab Paracetamol 650mg', dosage: '650mg', frequency: '1-0-1 (Twice Daily)', duration: '5 Days' }], created_at: new Date().toISOString() },
+    ],
+    doctors: [
+      { _id: 'doc-guest-1', doctor_name: 'Dr. Ananya Joshi', department: 'Cardiology', specialization: 'Cardiologist', consultation_fee: 1500 },
+      { _id: 'doc-guest-2', doctor_name: 'Dr. Rahul Gupta', department: 'General Medicine', specialization: 'General Physician', consultation_fee: 800 },
+      { _id: 'doc-guest-3', doctor_name: 'Dr. Sana Khan', department: 'Pediatrics', specialization: 'Pediatrician', consultation_fee: 1000 },
+    ],
+  };
+
   // Book Appointment Modal State
   const [showBookModal, setShowBookModal] = useState(false);
   const [bookingForm, setBookingForm] = useState({
@@ -59,6 +76,18 @@ export const PatientDashboard = () => {
   const fetchPatientData = async () => {
     setLoading(true);
     try {
+      // In guest mode, show mock data without calling the backend
+      if (user?.is_guest) {
+        setMetrics(GUEST_PATIENT_DATA.metrics);
+        setMyAppointments(GUEST_PATIENT_DATA.appointments);
+        setPrescriptionsList(GUEST_PATIENT_DATA.prescriptions);
+        setLabReportsList([]);
+        setDoctors(GUEST_PATIENT_DATA.doctors);
+        setBookingForm((prev) => ({ ...prev, doctor_id: GUEST_PATIENT_DATA.doctors[0]._id }));
+        setLoading(false);
+        return;
+      }
+
       const data = await dashboardService.getPatientDashboard();
       setMetrics(data);
 

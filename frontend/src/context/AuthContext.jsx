@@ -8,9 +8,21 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('niramaya_token') || null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch current user if token exists on mount
+  // Fetch current user if token exists on mount; also restore guest session if present
   useEffect(() => {
     const initAuth = async () => {
+      // Check for a persisted guest session first
+      const guestData = localStorage.getItem('niramaya_guest_user');
+      if (guestData) {
+        try {
+          setUser(JSON.parse(guestData));
+        } catch (_) {
+          localStorage.removeItem('niramaya_guest_user');
+        }
+        setLoading(false);
+        return;
+      }
+
       if (token) {
         try {
           const userData = await authService.getMe();
@@ -63,8 +75,22 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('niramaya_token');
+    localStorage.removeItem('niramaya_guest_user');
     setToken(null);
     setUser(null);
+  };
+
+  // Guest login: creates a mock user object without calling the backend
+  const guestLogin = (role) => {
+    const GUEST_PROFILES = {
+      doctor: { sub: 'guest_doctor', _id: 'guest_doctor', full_name: 'Dr. Guest Doctor', email: 'guest.doctor@niramaya.demo', role: 'doctor', is_guest: true },
+      admin:  { sub: 'guest_admin',  _id: 'guest_admin',  full_name: 'Guest Admin',      email: 'guest.admin@niramaya.demo',  role: 'admin',  is_guest: true },
+      patient:{ sub: 'guest_patient',_id: 'guest_patient',full_name: 'Guest Patient',    email: 'guest.patient@niramaya.demo',role: 'patient',is_guest: true },
+    };
+    const mockUser = GUEST_PROFILES[role];
+    if (!mockUser) return;
+    localStorage.setItem('niramaya_guest_user', JSON.stringify(mockUser));
+    setUser(mockUser);
   };
 
   return (
@@ -77,6 +103,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         googleLogin,
+        guestLogin,
         logout,
         isAuthenticated: !!user,
       }}

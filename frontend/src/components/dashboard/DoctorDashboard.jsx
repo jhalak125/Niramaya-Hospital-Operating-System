@@ -27,6 +27,22 @@ export const DoctorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('queue'); // queue | prescription | labtest | labreport | history
 
+  // --- Guest Mode Mock Data ---
+  const GUEST_DOCTOR_DATA = {
+    metrics: {
+      total_appointments: 5,
+      completed_appointments: 3,
+      pending_appointments: 2,
+      prescriptions_written: 4,
+      lab_tests_ordered: 2,
+    },
+    appointments: [
+      { appointment_id: 'APPT-DEMO-001', patient_id: 'PAT-001', patient_name: 'Riya Sharma', appointment_date: '2026-11-20', time_slot: '10:00 AM - 10:30 AM', reason: 'Fever & Cold', status: 'Confirmed' },
+      { appointment_id: 'APPT-DEMO-002', patient_id: 'PAT-002', patient_name: 'Arjun Mehta', appointment_date: '2026-11-21', time_slot: '11:00 AM - 11:30 AM', reason: 'Routine Checkup', status: 'Scheduled' },
+      { appointment_id: 'APPT-DEMO-003', patient_id: 'PAT-003', patient_name: 'Priya Verma', appointment_date: '2026-11-19', time_slot: '09:00 AM - 09:30 AM', reason: 'Diabetes Follow-up', status: 'Completed' },
+    ],
+  };
+
   // Modals & Active Selections
   const [selectedAppt, setSelectedAppt] = useState(null);
   const [showRecordModal, setShowRecordModal] = useState(false);
@@ -80,6 +96,15 @@ export const DoctorDashboard = () => {
   const fetchDoctorData = async () => {
     setLoading(true);
     try {
+      // In guest mode, show mock data without calling the backend
+      if (user?.is_guest) {
+        setMetrics(GUEST_DOCTOR_DATA.metrics);
+        setAppointments(GUEST_DOCTOR_DATA.appointments);
+        setSelectedPatientId(GUEST_DOCTOR_DATA.appointments[0].patient_id);
+        setLoading(false);
+        return;
+      }
+
       const data = await dashboardService.getDoctorDashboard();
       setMetrics(data);
 
