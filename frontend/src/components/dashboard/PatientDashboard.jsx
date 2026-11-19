@@ -44,9 +44,14 @@ export const PatientDashboard = () => {
       { _id: 'presc-guest-1', diagnosis: 'Viral Fever & URTI', advice: 'Drink warm water, rest for 3 days, take medicines after meals.', medicines: [{ name: 'Tab Paracetamol 650mg', dosage: '650mg', frequency: '1-0-1 (Twice Daily)', duration: '5 Days' }], created_at: new Date().toISOString() },
     ],
     doctors: [
-      { _id: 'doc-guest-1', doctor_name: 'Dr. Ananya Joshi', department: 'Cardiology', specialization: 'Cardiologist', consultation_fee: 1500 },
-      { _id: 'doc-guest-2', doctor_name: 'Dr. Rahul Gupta', department: 'General Medicine', specialization: 'General Physician', consultation_fee: 800 },
-      { _id: 'doc-guest-3', doctor_name: 'Dr. Sana Khan', department: 'Pediatrics', specialization: 'Pediatrician', consultation_fee: 1000 },
+      { _id: 'doc_cardio_01', doctor_name: 'Dr. Priya Sharma', department: 'Cardiology', specialization: 'Interventional Cardiologist', consultation_fee: 1500 },
+      { _id: 'doc_neuro_02', doctor_name: 'Dr. Rahul Mehta', department: 'Neurology', specialization: 'Neurologist', consultation_fee: 1800 },
+      { _id: 'doc_pedia_03', doctor_name: 'Dr. Ananya Krishnan', department: 'Pediatrics', specialization: 'Pediatrician', consultation_fee: 1000 },
+      { _id: 'doc_ortho_04', doctor_name: 'Dr. Vikram Singh', department: 'Orthopedics', specialization: 'Orthopedic Surgeon', consultation_fee: 2000 },
+      { _id: 'doc_derma_05', doctor_name: 'Dr. Neha Gupta', department: 'Dermatology', specialization: 'Dermatologist', consultation_fee: 1200 },
+      { _id: 'doc_genmed_06', doctor_name: 'Dr. Arjun Patel', department: 'General Medicine', specialization: 'General Physician', consultation_fee: 800 },
+      { _id: 'doc_gyn_07', doctor_name: 'Dr. Sunita Rao', department: 'Gynecology', specialization: 'Gynecologist & Obstetrician', consultation_fee: 1500 },
+      { _id: 'doc_psych_08', doctor_name: 'Dr. Karthik Nair', department: 'Psychiatry', specialization: 'Psychiatrist', consultation_fee: 2000 },
     ],
   };
 

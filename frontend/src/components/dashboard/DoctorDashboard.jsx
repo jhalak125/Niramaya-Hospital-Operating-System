@@ -155,21 +155,48 @@ export const DoctorDashboard = () => {
   }, [activeTab, selectedPatientId]);
 
   const handleUpdateStatus = async (apptId, status) => {
-    // Guest mode: skip backend call, update local state so badge reflects immediately
-    if (user?.is_guest) {
-      setAppointments((prev) =>
-        prev.map((a) =>
-          (a.appointment_id === apptId || a._id === apptId || a.id === apptId)
-            ? { ...a, status }
-            : a
-        )
+    // 1. Instantly update appointments state so the badge and UI update immediately
+    setAppointments((prev) =>
+      prev.map((a) =>
+        (a.appointment_id === apptId || a._id === apptId || a.id === apptId)
+          ? { ...a, status }
+          : a
+      )
+    );
+
+    // 2. Dynamically update metrics
+    setMetrics((prev) => {
+      if (!prev) return prev;
+      const targetAppt = appointments.find(
+        (a) => a.appointment_id === apptId || a._id === apptId || a.id === apptId
       );
+      const prevStatus = targetAppt?.status;
+      let completed = prev.completed_appointments ?? 0;
+      let pending = prev.pending_appointments ?? 0;
+
+      if (status === 'Completed' && prevStatus !== 'Completed') {
+        completed += 1;
+        if (pending > 0) pending -= 1;
+      } else if (status !== 'Completed' && prevStatus === 'Completed') {
+        if (completed > 0) completed -= 1;
+        pending += 1;
+      }
+
+      return {
+        ...prev,
+        completed_appointments: completed,
+        pending_appointments: pending,
+      };
+    });
+
+    // Guest mode: skip backend call, show demo success
+    if (user?.is_guest) {
+      alert(`✅ Appointment status updated to "${status}"!`);
       return;
     }
     try {
       await appointmentService.updateStatus(apptId, status);
       alert(`Appointment status updated to ${status}!`);
-      fetchDoctorData();
     } catch (err) {
       alert(err.message || 'Failed to update status');
     }
@@ -468,10 +495,29 @@ export const DoctorDashboard = () => {
                       <td className="p-3">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleUpdateStatus(appt.appointment_id || appt._id || appt.id, 'Confirmed')}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold"
+                            onClick={() => {
+                              const nextStatus =
+                                appt.status === 'Confirmed'
+                                  ? 'Completed'
+                                  : appt.status === 'Completed'
+                                  ? 'Scheduled'
+                                  : 'Confirmed';
+                              handleUpdateStatus(appt.appointment_id || appt._id || appt.id, nextStatus);
+                            }}
+                            className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-all ${
+                              appt.status === 'Confirmed'
+                                ? 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200'
+                                : appt.status === 'Completed'
+                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
+                            }`}
+                            title="Click to change consultation status"
                           >
-                            Confirm
+                            {appt.status === 'Confirmed'
+                              ? 'Mark Completed'
+                              : appt.status === 'Completed'
+                              ? 'Reopen'
+                              : 'Confirm'}
                           </button>
                           <button
                             onClick={() => {
