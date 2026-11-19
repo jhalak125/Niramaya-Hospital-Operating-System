@@ -155,6 +155,11 @@ export const DoctorDashboard = () => {
   }, [activeTab, selectedPatientId]);
 
   const handleUpdateStatus = async (apptId, status) => {
+    // Guest mode: skip backend call, show demo success
+    if (user?.is_guest) {
+      alert(`✅ [Demo Mode] Appointment status updated to ${status}! In a live session, this would be saved to the database.`);
+      return;
+    }
     try {
       await appointmentService.updateStatus(apptId, status);
       alert(`Appointment status updated to ${status}!`);
@@ -166,6 +171,12 @@ export const DoctorDashboard = () => {
 
   const handleRecordSubmit = async (e) => {
     e.preventDefault();
+    // Guest mode: skip backend call, show demo success
+    if (user?.is_guest) {
+      alert('✅ [Demo Mode] Medical record logged successfully! In a live session, this would be saved to your hospital database.');
+      setShowRecordModal(false);
+      return;
+    }
     const apptId = selectedAppt?.appointment_id || selectedAppt?._id || selectedAppt?.id;
     if (!apptId) {
       alert('Invalid appointment selection.');
@@ -193,6 +204,12 @@ export const DoctorDashboard = () => {
 
   const handlePrescriptionSubmit = async (e) => {
     e.preventDefault();
+    // Guest mode: skip backend call, show demo success
+    if (user?.is_guest) {
+      alert('✅ [Demo Mode] Prescription issued and saved! In a live session, this would be recorded against the patient.');
+      setShowPrescriptionModal(false);
+      return;
+    }
     const apptId = prescriptionForm.appointment_id || selectedAppt?.appointment_id || selectedAppt?._id;
     const patId = selectedAppt?.patient_id || user?.sub;
     const docId = user?.sub || user?._id;
@@ -219,6 +236,12 @@ export const DoctorDashboard = () => {
 
   const handleLabTestSubmit = async (e) => {
     e.preventDefault();
+    // Guest mode: skip backend call, show demo success
+    if (user?.is_guest) {
+      alert('✅ [Demo Mode] Lab test order placed! In a live session, this would notify the laboratory.');
+      setShowLabTestModal(false);
+      return;
+    }
     const apptId = labTestForm.appointment_id || selectedAppt?.appointment_id || selectedAppt?._id;
     if (!apptId) {
       alert('Please select an appointment for ordering lab test.');
@@ -240,6 +263,12 @@ export const DoctorDashboard = () => {
 
   const handleLabReportSubmit = async (e) => {
     e.preventDefault();
+    // Guest mode: skip backend call, show demo success
+    if (user?.is_guest) {
+      alert('✅ [Demo Mode] Lab report uploaded successfully! In a live session, this would be attached to the patient record.');
+      setLabReportForm({ lab_test_id: '', result: '', notes: '', file: null });
+      return;
+    }
     if (!labReportForm.lab_test_id) {
       alert('Please enter or select a Lab Test ID.');
       return;

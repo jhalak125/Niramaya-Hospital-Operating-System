@@ -165,8 +165,16 @@ export const PatientDashboard = () => {
       alert('Please select a doctor.');
       return;
     }
-    if (!patientId) {
+    if (!patientId && !user?.is_guest) {
       alert('Patient session not found. Please sign in again.');
+      return;
+    }
+
+    // Guest mode: skip backend call, show demo success
+    if (user?.is_guest) {
+      const selectedDoctor = doctors.find(d => (d._id || d.user_id) === bookingForm.doctor_id);
+      alert(`✅ [Demo Mode] Appointment booked successfully! ${selectedDoctor?.doctor_name || 'Your doctor'} on ${bookingForm.appointment_date} at ${bookingForm.time_slot}. In a live session this would be saved to your profile.`);
+      setShowBookModal(false);
       return;
     }
 
@@ -189,6 +197,14 @@ export const PatientDashboard = () => {
       alert('Please enter or select your Bill/Invoice ID.');
       return;
     }
+
+    // Guest mode: skip backend call, show demo success
+    if (user?.is_guest) {
+      alert(`✅ [Demo Mode] Payment receipt submitted! Transaction ID: ${paymentForm.transaction_id}. Amount: ₹${paymentForm.amount}. In a live session this would be verified by our billing desk.`);
+      setShowPaymentModal(false);
+      return;
+    }
+
     if (!paymentForm.screenshot) {
       alert('Please select your payment receipt screenshot image file.');
       return;

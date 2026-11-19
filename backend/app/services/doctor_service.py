@@ -110,9 +110,17 @@ async def get_doctor(doctor_id: str):
     doctor = await DoctorRepository.get_by_id(doctor_id)
     if doctor is None:
         raise HTTPException(status_code=404, detail="Doctor not found")
-    user = await UserRepository.get_by_id(doctor["user_id"])
+    user = None
+    try:
+        user = await UserRepository.get_by_id(doctor["user_id"])
+    except Exception:
+        pass
     doctor["_id"] = str(doctor["_id"])
-    doctor["doctor_name"] = user["full_name"] if user else doctor.get("doctor_name", "Dr. Specialist")
+    doctor["doctor_name"] = (
+        (user["full_name"] if user else None)
+        or doctor.get("doctor_name")
+        or f"Dr. {doctor.get('specialization', 'Specialist')}"
+    )
     return doctor
 
 
@@ -138,8 +146,16 @@ async def get_all_doctors():
     doctors = await DoctorRepository.get_all()
     result = []
     for doctor in doctors:
-        user = await UserRepository.get_by_id(doctor["user_id"])
+        user = None
+        try:
+            user = await UserRepository.get_by_id(doctor["user_id"])
+        except Exception:
+            pass
         doctor["_id"] = str(doctor["_id"])
-        doctor["doctor_name"] = user["full_name"] if user else doctor.get("doctor_name", "Dr. Specialist")
+        doctor["doctor_name"] = (
+            (user["full_name"] if user else None)
+            or doctor.get("doctor_name")
+            or f"Dr. {doctor.get('specialization', 'Specialist')}"
+        )
         result.append(doctor)
     return result
