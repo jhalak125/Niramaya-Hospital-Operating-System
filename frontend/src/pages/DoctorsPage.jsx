@@ -13,6 +13,18 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+// Fallback doctors shown when the backend is offline or the DB is empty
+const FALLBACK_DOCTORS = [
+  { _id: 'fd-1', doctor_name: 'Dr. Priya Sharma', department: 'Cardiology', specialization: 'Interventional Cardiologist', qualification: 'MBBS, MD, DM (Cardiology)', experience: 12, consultation_fee: 1500, status: 'available' },
+  { _id: 'fd-2', doctor_name: 'Dr. Rahul Mehta', department: 'Neurology', specialization: 'Neurologist', qualification: 'MBBS, MD, DM (Neurology)', experience: 10, consultation_fee: 1800, status: 'available' },
+  { _id: 'fd-3', doctor_name: 'Dr. Ananya Krishnan', department: 'Pediatrics', specialization: 'Pediatrician', qualification: 'MBBS, MD (Pediatrics)', experience: 8, consultation_fee: 1000, status: 'available' },
+  { _id: 'fd-4', doctor_name: 'Dr. Vikram Singh', department: 'Orthopedics', specialization: 'Orthopedic Surgeon', qualification: 'MBBS, MS (Orthopedics)', experience: 15, consultation_fee: 2000, status: 'available' },
+  { _id: 'fd-5', doctor_name: 'Dr. Neha Gupta', department: 'Dermatology', specialization: 'Dermatologist', qualification: 'MBBS, MD (Dermatology)', experience: 7, consultation_fee: 1200, status: 'available' },
+  { _id: 'fd-6', doctor_name: 'Dr. Arjun Patel', department: 'General Medicine', specialization: 'General Physician', qualification: 'MBBS, MD (General Medicine)', experience: 9, consultation_fee: 800, status: 'available' },
+  { _id: 'fd-7', doctor_name: 'Dr. Sunita Rao', department: 'Gynecology', specialization: 'Gynecologist & Obstetrician', qualification: 'MBBS, MS (OBG)', experience: 11, consultation_fee: 1500, status: 'available' },
+  { _id: 'fd-8', doctor_name: 'Dr. Karthik Nair', department: 'Psychiatry', specialization: 'Psychiatrist', qualification: 'MBBS, MD (Psychiatry)', experience: 6, consultation_fee: 2000, status: 'available' },
+];
+
 export const DoctorsPage = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +39,11 @@ export const DoctorsPage = () => {
       try {
         const res = await doctorService.getAllDoctors();
         const list = Array.isArray(res) ? res : res?.doctors || res?.data || [];
-        setDoctors(list);
+        // If backend returns empty (offline / unseeded), show fallback data
+        setDoctors(list.length > 0 ? list : FALLBACK_DOCTORS);
       } catch (err) {
-        console.error('Failed to load doctors:', err);
+        console.error('Failed to load doctors from backend, using fallback:', err);
+        setDoctors(FALLBACK_DOCTORS);
       } finally {
         setLoading(false);
       }
@@ -37,13 +51,17 @@ export const DoctorsPage = () => {
     fetchDoctors();
   }, []);
 
-  const departments = ['All', 'Cardiology', 'Neurology', 'Pediatrics', 'Orthopedics', 'Dermatology'];
+  const departments = ['All', 'Cardiology', 'Neurology', 'Pediatrics', 'Orthopedics', 'Dermatology', 'General Medicine', 'Gynecology', 'Psychiatry'];
 
   const filteredDoctors = doctors.filter((doc) => {
+    const q = searchQuery.toLowerCase();
     const matchesSearch =
-      doc.specialization?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.qualification?.toLowerCase().includes(searchQuery.toLowerCase());
+      !q ||
+      doc.doctor_name?.toLowerCase().includes(q) ||
+      doc.full_name?.toLowerCase().includes(q) ||
+      doc.specialization?.toLowerCase().includes(q) ||
+      doc.department?.toLowerCase().includes(q) ||
+      doc.qualification?.toLowerCase().includes(q);
     const matchesDept = selectedDepartment === 'All' || doc.department === selectedDepartment;
     return matchesSearch && matchesDept;
   });

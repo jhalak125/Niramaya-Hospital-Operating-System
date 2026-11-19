@@ -155,9 +155,15 @@ export const DoctorDashboard = () => {
   }, [activeTab, selectedPatientId]);
 
   const handleUpdateStatus = async (apptId, status) => {
-    // Guest mode: skip backend call, show demo success
+    // Guest mode: skip backend call, update local state so badge reflects immediately
     if (user?.is_guest) {
-      alert(`✅ [Demo Mode] Appointment status updated to ${status}! In a live session, this would be saved to the database.`);
+      setAppointments((prev) =>
+        prev.map((a) =>
+          (a.appointment_id === apptId || a._id === apptId || a.id === apptId)
+            ? { ...a, status }
+            : a
+        )
+      );
       return;
     }
     try {
